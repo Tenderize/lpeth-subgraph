@@ -5,11 +5,11 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: eth
+    name: LpETH
     network: mainnet
     source:
       address: "0x3a03f8223A6dffe7Ce26055B6f86Ee8b96F6acE8"
-      abi: eth
+      abi: LpETH
       startBlock: 0
     mapping:
       kind: ethereum/events
@@ -29,8 +29,8 @@ dataSources:
         - Upgraded
         - Withdraw
       abis:
-        - name: eth
-          file: ./abis/eth.json
+        - name: LpETH
+          file: ./abis/LpETH.json
       eventHandlers:
         - event: BatchUnlockBought(indexed address,uint256,uint256,uint256,uint256[])
           handler: handleBatchUnlockBought
@@ -56,4 +56,4 @@ dataSources:
           handler: handleUpgraded
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
-      file: ./src/eth.ts
+      file: ./src/lp-eth.ts

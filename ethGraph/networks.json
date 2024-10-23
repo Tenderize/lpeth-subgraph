@@ -1,6 +1,6 @@
 {
   "mainnet": {
-    "eth": {
+    "LpETH": {
       "address": "0x3a03f8223A6dffe7Ce26055B6f86Ee8b96F6acE8",
       "startBlock": 0
     }

@@ -11,7 +11,7 @@ import {
   UnlockRedeemed as UnlockRedeemedEvent,
   Upgraded as UpgradedEvent,
   Withdraw as WithdrawEvent
-} from "../generated/eth/eth"
+} from "../generated/LpETH/LpETH"
 import {
   BatchUnlockBought,
   BatchUnlockRedeemed,

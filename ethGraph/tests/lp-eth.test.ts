@@ -8,9 +8,9 @@ import {
 } from "matchstick-as/assembly/index"
 import { Address, BigInt } from "@graphprotocol/graph-ts"
 import { BatchUnlockBought } from "../generated/schema"
-import { BatchUnlockBought as BatchUnlockBoughtEvent } from "../generated/eth/eth"
-import { handleBatchUnlockBought } from "../src/eth"
-import { createBatchUnlockBoughtEvent } from "./eth-utils"
+import { BatchUnlockBought as BatchUnlockBoughtEvent } from "../generated/LpETH/LpETH"
+import { handleBatchUnlockBought } from "../src/lp-eth"
+import { createBatchUnlockBoughtEvent } from "./lp-eth-utils"
 
 // Tests structure (matchstick-as >=0.5.0)
 // https://thegraph.com/docs/en/developer/matchstick/#tests-structure-0-5-0

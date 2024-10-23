@@ -13,7 +13,7 @@ import {
   UnlockRedeemed,
   Upgraded,
   Withdraw
-} from "../generated/eth/eth"
+} from "../generated/LpETH/LpETH"
 
 export function createBatchUnlockBoughtEvent(
   caller: Address,
