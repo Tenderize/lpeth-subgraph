@@ -56,4 +56,4 @@ dataSources:
           handler: handleUpgraded
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
-      file: ./src/lp-eth.ts
+      file: ./src/mappings/lp-eth.ts
