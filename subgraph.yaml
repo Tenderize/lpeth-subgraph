@@ -23,7 +23,8 @@ dataSources:
         - Initialized
         - OwnershipTransferred
         - RelayerRewardsClaimed
-        - Swap
+        - SwapPool
+        - SwapPoolDay
         - UnlockBought
         - UnlockRedeemed
         - Upgraded
