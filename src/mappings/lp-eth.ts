@@ -19,6 +19,7 @@ import {
   ClaimWithdrawRequest,
   Deposit,
   Initialized,
+  LiquidityPosition,
   OwnershipTransferred,
   RelayerRewardsClaimed,
   SwapPool,
@@ -26,6 +27,7 @@ import {
   UnlockBought,
   UnlockRedeemed,
   Upgraded,
+  User,
   Withdraw,
 } from "../../generated/schema";
 import {
@@ -34,6 +36,7 @@ import {
   calculateDayID,
   convertToDecimal,
   ethUsd,
+  TEN_18,
 } from "./helpers";
 
 const initiatePoolDay = (pool: SwapPool, dayID: BigInt): SwapPoolDay => {
@@ -111,58 +114,11 @@ export function handleClaimWithdrawRequest(
   entity.save();
 }
 
-export function handleDeposit(event: DepositEvent): void {
-  let entity = new Deposit(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.from = event.params.from;
-  entity.amount = event.params.amount;
-  entity.lpSharesMinted = event.params.lpSharesMinted;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-}
-
 export function handleInitialized(event: InitializedEvent): void {
   let entity = new Initialized(
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
   entity.version = event.params.version;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-}
-
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.previousOwner = event.params.previousOwner;
-  entity.newOwner = event.params.newOwner;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-}
-
-export function handleRelayerRewardsClaimed(
-  event: RelayerRewardsClaimedEvent
-): void {
-  let entity = new RelayerRewardsClaimed(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.relayer = event.params.relayer;
-  entity.rewards = event.params.rewards;
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;
@@ -206,6 +162,128 @@ export function handleSwap(event: SwapEvent): void {
 
   pool.save();
 }
+export function handleWithdraw(event: WithdrawEvent): void {
+  let entity = new Withdraw(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.to = event.params.to;
+  entity.amount = event.params.amount;
+  entity.lpSharesBurnt = event.params.lpSharesBurnt;
+  entity.requestId = event.params.requestId;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let pool = SwapPool.load(event.address.toHex());
+  if (pool == null) return;
+
+  let user = event.params.to.toHexString();
+  let lp = LiquidityPosition.load(user.concat("-").concat(pool.id));
+  if (lp == null) return;
+  let bal = lp.shares
+    .times(pool.liabilities.times(TEN_18).div(pool.totalSupply))
+    .div(TEN_18);
+  let amount = event.params.amount;
+  if (bal.minus(lp.netDeposits).lt(amount)) {
+    // if rewards less than amount, set net deposits
+    // to balance minus what wasnt subtracted from the rewards
+    lp.netDeposits = bal.minus(amount);
+  } else {
+    // withdrawn rewards, do nothing
+  }
+  lp.shares = lp.shares.minus(event.params.lpSharesBurnt);
+  lp.save();
+
+  pool.totalSupply = pool.totalSupply.minus(event.params.lpSharesBurnt);
+  pool.liabilities = pool.liabilities.minus(event.params.amount);
+
+  let dayID = calculateDayID(event.block.timestamp);
+  let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
+  if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
+
+  poolDay.save();
+  pool.save();
+}
+export function handleDeposit(event: DepositEvent): void {
+  let entity = new Deposit(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.from = event.params.from;
+  entity.amount = event.params.amount;
+  entity.lpSharesMinted = event.params.lpSharesMinted;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+
+  let pool = SwapPool.load(event.address.toHex());
+  if (pool == null) return;
+
+  pool.totalSupply = pool.totalSupply.plus(event.params.lpSharesMinted);
+  pool.liabilities = pool.liabilities.plus(event.params.amount);
+
+  let dayID = calculateDayID(event.block.timestamp);
+  let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
+  if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
+
+  let from = event.params.from.toHexString();
+  let user = User.load(from);
+  if (user == null) {
+    user = new User(from);
+    user.save();
+  }
+
+  let lp = LiquidityPosition.load(from.concat("-").concat(pool.id));
+  if (lp == null) {
+    lp = new LiquidityPosition(from.concat("-").concat(pool.id));
+    lp.user = from;
+    lp.pool = pool.id;
+    lp.shares = BI_ZERO;
+    lp.netDeposits = BI_ZERO;
+  }
+  lp.shares = lp.shares.plus(event.params.lpSharesMinted);
+  lp.netDeposits = lp.netDeposits.plus(event.params.amount);
+  lp.save();
+  poolDay.save();
+  pool.save();
+}
+
+export function handleOwnershipTransferred(
+  event: OwnershipTransferredEvent
+): void {
+  let entity = new OwnershipTransferred(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.previousOwner = event.params.previousOwner;
+  entity.newOwner = event.params.newOwner;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+}
+
+export function handleRelayerRewardsClaimed(
+  event: RelayerRewardsClaimedEvent
+): void {
+  let entity = new RelayerRewardsClaimed(
+    event.transaction.hash.concatI32(event.logIndex.toI32())
+  );
+  entity.relayer = event.params.relayer;
+  entity.rewards = event.params.rewards;
+
+  entity.blockNumber = event.block.number;
+  entity.blockTimestamp = event.block.timestamp;
+  entity.transactionHash = event.transaction.hash;
+
+  entity.save();
+}
 
 export function handleUnlockBought(event: UnlockBoughtEvent): void {
   let entity = new UnlockBought(
@@ -246,22 +324,6 @@ export function handleUpgraded(event: UpgradedEvent): void {
     event.transaction.hash.concatI32(event.logIndex.toI32())
   );
   entity.implementation = event.params.implementation;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-}
-
-export function handleWithdraw(event: WithdrawEvent): void {
-  let entity = new Withdraw(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.to = event.params.to;
-  entity.amount = event.params.amount;
-  entity.lpSharesBurnt = event.params.lpSharesBurnt;
-  entity.requestId = event.params.requestId;
 
   entity.blockNumber = event.block.number;
   entity.blockTimestamp = event.block.timestamp;

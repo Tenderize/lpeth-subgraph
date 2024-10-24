@@ -29,6 +29,8 @@ dataSources:
         - UnlockRedeemed
         - Upgraded
         - Withdraw
+        - User
+        - LiquidityPosition
       abis:
         - name: LpETH
           file: ./abis/LpETH.json

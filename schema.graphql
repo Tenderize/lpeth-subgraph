@@ -153,3 +153,16 @@ type Withdraw @entity(immutable: true) {
   blockTimestamp: BigInt!
   transactionHash: Bytes!
 }
+
+type User @entity {
+  id: ID! # user address
+  liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
+}
+
+type LiquidityPosition @entity {
+  id: ID! # user address + pool address
+  user: User!
+  pool: SwapPool!
+  shares: BigInt!
+  netDeposits: BigInt!
+}
