@@ -5,7 +5,7 @@ import {
   Bytes,
   ethereum,
 } from "@graphprotocol/graph-ts";
-import { UniswapQuoter } from "../types/templates/SwapPool/UniswapQuoter";
+import { UniswapQuoter } from "./UniswapQuoter";
 
 export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
