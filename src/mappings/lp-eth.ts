@@ -76,6 +76,33 @@ export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  let pool = SwapPool.load(event.address.toHex());
+  if (!pool) return;
+
+  const usdPrice = ethUsd();
+
+  const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
+  const treasuryCut = event.params.amount
+    .minus(event.params.lpFees)
+    .minus(event.params.reward);
+  const treasuryCutInUSD = usdPrice.times(convertToDecimal(treasuryCut));
+
+  pool.unlocking = pool.unlocking.minus(event.params.amount);
+  pool.lpRewards = pool.lpRewards.plus(event.params.lpFees);
+  pool.lpRewardsUSD = pool.lpRewardsUSD.plus(lpRewardsInUSD);
+  pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
+  pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
+  pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  let dayID = calculateDayID(event.block.timestamp);
+  let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
+  if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
+  poolDay.lpRewards = poolDay.lpRewards.plus(event.params.lpFees);
+  poolDay.lpRewardsUSD = poolDay.lpRewardsUSD.plus(lpRewardsInUSD);
+  poolDay.treasuryCut = poolDay.treasuryCut.plus(treasuryCut);
+  poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
+  poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
+  poolDay.save();
+  pool.save();
 }
 
 export function handleBatchUnlockRedeemed(
@@ -95,6 +122,33 @@ export function handleBatchUnlockRedeemed(
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  let pool = SwapPool.load(event.address.toHex());
+  if (!pool) return;
+
+  const usdPrice = ethUsd();
+  const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
+
+  const treasuryCut = event.params.amount
+    .minus(event.params.lpFees)
+    .minus(event.params.reward);
+  const treasuryCutInUSD = usdPrice.times(convertToDecimal(treasuryCut));
+
+  pool.unlocking = pool.unlocking.minus(event.params.amount);
+  pool.lpRewards = pool.lpRewards.plus(event.params.lpFees);
+  pool.lpRewardsUSD = pool.lpRewardsUSD.plus(lpRewardsInUSD);
+  pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
+  pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
+  pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  let dayID = calculateDayID(event.block.timestamp);
+  let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
+  if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
+  poolDay.lpRewards = poolDay.lpRewards.plus(event.params.lpFees);
+  poolDay.lpRewardsUSD = poolDay.lpRewardsUSD.plus(lpRewardsInUSD);
+  poolDay.treasuryCut = poolDay.treasuryCut.plus(treasuryCut);
+  poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
+  poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
+  poolDay.save();
+  pool.save();
 }
 
 export function handleClaimWithdrawRequest(
@@ -300,6 +354,33 @@ export function handleUnlockBought(event: UnlockBoughtEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  let pool = SwapPool.load(event.address.toHex());
+  if (!pool) return;
+
+  const usdPrice = ethUsd();
+
+  const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
+  const treasuryCut = event.params.amount
+    .minus(event.params.lpFees)
+    .minus(event.params.reward);
+  const treasuryCutInUSD = usdPrice.times(convertToDecimal(treasuryCut));
+
+  pool.unlocking = pool.unlocking.minus(event.params.amount);
+  pool.lpRewards = pool.lpRewards.plus(event.params.lpFees);
+  pool.lpRewardsUSD = pool.lpRewardsUSD.plus(lpRewardsInUSD);
+  pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
+  pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
+  pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  let dayID = calculateDayID(event.block.timestamp);
+  let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
+  if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
+  poolDay.lpRewards = poolDay.lpRewards.plus(event.params.lpFees);
+  poolDay.lpRewardsUSD = poolDay.lpRewardsUSD.plus(lpRewardsInUSD);
+  poolDay.treasuryCut = poolDay.treasuryCut.plus(treasuryCut);
+  poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
+  poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
+  poolDay.save();
+  pool.save();
 }
 
 export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
@@ -317,6 +398,33 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   entity.transactionHash = event.transaction.hash;
 
   entity.save();
+  let pool = SwapPool.load(event.address.toHex());
+  if (!pool) return;
+
+  const usdPrice = ethUsd();
+  const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
+
+  const treasuryCut = event.params.amount
+    .minus(event.params.lpFees)
+    .minus(event.params.reward);
+  const treasuryCutInUSD = usdPrice.times(convertToDecimal(treasuryCut));
+
+  pool.unlocking = pool.unlocking.minus(event.params.amount);
+  pool.lpRewards = pool.lpRewards.plus(event.params.lpFees);
+  pool.lpRewardsUSD = pool.lpRewardsUSD.plus(lpRewardsInUSD);
+  pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
+  pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
+  pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  let dayID = calculateDayID(event.block.timestamp);
+  let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
+  if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
+  poolDay.lpRewards = poolDay.lpRewards.plus(event.params.lpFees);
+  poolDay.lpRewardsUSD = poolDay.lpRewardsUSD.plus(lpRewardsInUSD);
+  poolDay.treasuryCut = poolDay.treasuryCut.plus(treasuryCut);
+  poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
+  poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
+  poolDay.save();
+  pool.save();
 }
 
 export function handleUpgraded(event: UpgradedEvent): void {
