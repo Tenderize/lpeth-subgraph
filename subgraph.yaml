@@ -43,10 +43,6 @@ dataSources:
           handler: handleClaimWithdrawRequest
         - event: Deposit(indexed address,uint256,uint256)
           handler: handleDeposit
-        - event: Initialized(uint64)
-          handler: handleInitialized
-        - event: OwnershipTransferred(indexed address,indexed address)
-          handler: handleOwnershipTransferred
         - event: RelayerRewardsClaimed(indexed address,uint256)
           handler: handleRelayerRewardsClaimed
         - event: Swap(indexed address,indexed address,uint256,uint256,uint256)
@@ -55,8 +51,6 @@ dataSources:
           handler: handleUnlockBought
         - event: UnlockRedeemed(indexed address,uint256,uint256,uint256,uint256)
           handler: handleUnlockRedeemed
-        - event: Upgraded(indexed address)
-          handler: handleUpgraded
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
       file: ./src/mappings/lp-eth.ts

@@ -4,13 +4,10 @@ import {
   BatchUnlockRedeemed as BatchUnlockRedeemedEvent,
   ClaimWithdrawRequest as ClaimWithdrawRequestEvent,
   Deposit as DepositEvent,
-  Initialized as InitializedEvent,
-  OwnershipTransferred as OwnershipTransferredEvent,
   RelayerRewardsClaimed as RelayerRewardsClaimedEvent,
   Swap as SwapEvent,
   UnlockBought as UnlockBoughtEvent,
   UnlockRedeemed as UnlockRedeemedEvent,
-  Upgraded as UpgradedEvent,
   Withdraw as WithdrawEvent,
 } from "../../generated/LpETH/LpETH";
 import {
@@ -18,15 +15,12 @@ import {
   BatchUnlockRedeemed,
   ClaimWithdrawRequest,
   Deposit,
-  Initialized,
   LiquidityPosition,
-  OwnershipTransferred,
   RelayerRewardsClaimed,
   SwapPool,
   SwapPoolDay,
   UnlockBought,
   UnlockRedeemed,
-  Upgraded,
   User,
   Withdraw,
 } from "../../generated/schema";
@@ -168,19 +162,6 @@ export function handleClaimWithdrawRequest(
   entity.save();
 }
 
-export function handleInitialized(event: InitializedEvent): void {
-  let entity = new Initialized(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.version = event.params.version;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-}
-
 export function handleSwap(event: SwapEvent): void {
   let pool = SwapPool.load(event.address.toHex());
   if (pool == null) return;
@@ -307,22 +288,6 @@ export function handleDeposit(event: DepositEvent): void {
   pool.save();
 }
 
-export function handleOwnershipTransferred(
-  event: OwnershipTransferredEvent
-): void {
-  let entity = new OwnershipTransferred(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.previousOwner = event.params.previousOwner;
-  entity.newOwner = event.params.newOwner;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
-}
-
 export function handleRelayerRewardsClaimed(
   event: RelayerRewardsClaimedEvent
 ): void {
@@ -425,17 +390,4 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
   pool.save();
-}
-
-export function handleUpgraded(event: UpgradedEvent): void {
-  let entity = new Upgraded(
-    event.transaction.hash.concatI32(event.logIndex.toI32())
-  );
-  entity.implementation = event.params.implementation;
-
-  entity.blockNumber = event.block.number;
-  entity.blockTimestamp = event.block.timestamp;
-  entity.transactionHash = event.transaction.hash;
-
-  entity.save();
 }
