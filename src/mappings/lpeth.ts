@@ -4,6 +4,7 @@ import {
   BatchUnlockRedeemed as BatchUnlockRedeemedEvent,
   ClaimWithdrawRequest as ClaimWithdrawRequestEvent,
   Deposit as DepositEvent,
+  Initialized as InitializedEvent,
   RelayerRewardsClaimed as RelayerRewardsClaimedEvent,
   Swap as SwapEvent,
   UnlockBought as UnlockBoughtEvent,
@@ -17,6 +18,7 @@ import {
   Deposit,
   LiquidityPosition,
   RelayerRewardsClaimed,
+  Swap,
   SwapPool,
   SwapPoolDay,
   UnlockBought,
@@ -25,35 +27,33 @@ import {
   Withdraw,
 } from "../../generated/schema";
 import {
+  initiatePoolDay,
   BD_ZERO,
   BI_ZERO,
   calculateDayID,
   convertToDecimal,
-  ethUsd,
+  ETHUSD,
   TEN_18,
 } from "./helpers";
 
-const initiatePoolDay = (pool: SwapPool, dayID: BigInt): SwapPoolDay => {
-  const poolDay = new SwapPoolDay(pool.id.concat("-").concat(dayID.toString()));
 
-  poolDay.date = dayID.toI32();
-  poolDay.pool = pool.id;
-
-  poolDay.totalSupply = pool.totalSupply;
-  poolDay.liabilities = pool.liabilities;
-  poolDay.unlocking = pool.unlocking;
-
-  poolDay.volume = BI_ZERO;
-  poolDay.volumeUSD = BD_ZERO;
-  poolDay.fees = BI_ZERO;
-  poolDay.feesUSD = BD_ZERO;
-  poolDay.lpRewards = BI_ZERO;
-  poolDay.lpRewardsUSD = BD_ZERO;
-  poolDay.treasuryCut = BI_ZERO;
-  poolDay.treasuryCutUSD = BD_ZERO;
-
-  return poolDay;
-};
+export function handleInitialize(event: InitializedEvent): void {
+  let pool = new SwapPool(event.address.toHex());
+  pool.totalSupply = BI_ZERO;
+  pool.liabilities = BI_ZERO;
+  pool.volume = BI_ZERO;
+  pool.volumeUSD = BD_ZERO;
+  pool.lpRewards = BI_ZERO;
+  pool.lpRewardsUSD = BD_ZERO;
+  pool.fees = BI_ZERO;
+  pool.feesUSD = BD_ZERO;
+  pool.treasuryCut = BI_ZERO;
+  pool.treasuryCutUSD = BD_ZERO;
+  pool.unlocking = BI_ZERO;
+  pool.id = event.address.toHex();
+  pool.numSwaps = BI_ZERO;
+  pool.save();
+}
 
 export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
   let entity = new BatchUnlockBought(
@@ -73,7 +73,7 @@ export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
   let pool = SwapPool.load(event.address.toHex());
   if (!pool) return;
 
-  const usdPrice = ethUsd();
+  const usdPrice = ETHUSD();
 
   const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
   const treasuryCut = event.params.amount
@@ -87,6 +87,8 @@ export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
   pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
   pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
   pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  pool.save();
+
   let dayID = calculateDayID(event.block.timestamp);
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
   if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
@@ -96,7 +98,6 @@ export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
   poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
-  pool.save();
 }
 
 export function handleBatchUnlockRedeemed(
@@ -119,7 +120,7 @@ export function handleBatchUnlockRedeemed(
   let pool = SwapPool.load(event.address.toHex());
   if (!pool) return;
 
-  const usdPrice = ethUsd();
+  const usdPrice = ETHUSD();
   const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
 
   const treasuryCut = event.params.amount
@@ -133,6 +134,8 @@ export function handleBatchUnlockRedeemed(
   pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
   pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
   pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  pool.save();
+
   let dayID = calculateDayID(event.block.timestamp);
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
   if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
@@ -142,7 +145,6 @@ export function handleBatchUnlockRedeemed(
   poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
-  pool.save();
 }
 
 export function handleClaimWithdrawRequest(
@@ -166,18 +168,30 @@ export function handleSwap(event: SwapEvent): void {
   let pool = SwapPool.load(event.address.toHex());
   if (pool == null) return;
 
-  const usdPrice = ethUsd();
+  const usdPrice = ETHUSD();
   const amountInUSD = usdPrice.times(convertToDecimal(event.params.amountIn));
   const feeInUSD = usdPrice.times(convertToDecimal(event.params.fee));
 
-  pool.caller = event.params.caller;
-  pool.asset = event.params.asset;
+  let swapId = event.params.caller.toHex().concat("-").concat(pool.numSwaps.toString());
+  let swap = new Swap(swapId);
+  swap.pool = pool.id;
+  swap.amount = event.params.amountIn;
+  swap.amountUSD = amountInUSD;
+  swap.fee = event.params.fee;
+  swap.feeUSD = feeInUSD;
+  swap.asset = event.params.asset;
+  swap.from = event.params.caller;
+  swap.blockNumber = event.block.number;
+  swap.blockTimestamp = event.block.timestamp;
+  swap.transactionHash = event.transaction.hash;
+  swap.save()
+
   pool.unlocking = pool.unlocking.plus(event.params.amountIn);
   pool.volume = pool.volume.plus(event.params.amountIn);
   pool.volumeUSD = pool.volumeUSD.plus(amountInUSD);
   pool.fees = pool.fees.plus(event.params.fee);
   pool.feesUSD = pool.feesUSD.plus(feeInUSD);
-  pool.id;
+  pool.save();
 
   let dayID = calculateDayID(event.block.timestamp);
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
@@ -186,17 +200,9 @@ export function handleSwap(event: SwapEvent): void {
   poolDay.volumeUSD = poolDay.volumeUSD.plus(amountInUSD);
   poolDay.fees = poolDay.fees.plus(event.params.fee);
   poolDay.feesUSD = poolDay.feesUSD.plus(feeInUSD);
-
   poolDay.save();
-  pool.save();
-
-  pool.unlockId = event.params.unlockId;
-  pool.blockNumber = event.block.number;
-  pool.blockTimestamp = event.block.timestamp;
-  pool.transactionHash = event.transaction.hash;
-
-  pool.save();
 }
+
 export function handleWithdraw(event: WithdrawEvent): void {
   let entity = new Withdraw(
     event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -322,7 +328,7 @@ export function handleUnlockBought(event: UnlockBoughtEvent): void {
   let pool = SwapPool.load(event.address.toHex());
   if (!pool) return;
 
-  const usdPrice = ethUsd();
+  const usdPrice = ETHUSD();
 
   const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
   const treasuryCut = event.params.amount
@@ -336,6 +342,8 @@ export function handleUnlockBought(event: UnlockBoughtEvent): void {
   pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
   pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
   pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  pool.save();
+
   let dayID = calculateDayID(event.block.timestamp);
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
   if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
@@ -345,7 +353,6 @@ export function handleUnlockBought(event: UnlockBoughtEvent): void {
   poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
-  pool.save();
 }
 
 export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
@@ -366,7 +373,7 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   let pool = SwapPool.load(event.address.toHex());
   if (!pool) return;
 
-  const usdPrice = ethUsd();
+  const usdPrice = ETHUSD();
   const lpRewardsInUSD = usdPrice.times(convertToDecimal(event.params.lpFees));
 
   const treasuryCut = event.params.amount
@@ -380,6 +387,8 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   pool.treasuryCut = pool.treasuryCut.plus(treasuryCut);
   pool.treasuryCutUSD = pool.treasuryCutUSD.plus(treasuryCutInUSD);
   pool.liabilities = pool.liabilities.plus(event.params.lpFees);
+  pool.save();
+
   let dayID = calculateDayID(event.block.timestamp);
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
   if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
@@ -389,5 +398,4 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
-  pool.save();
 }

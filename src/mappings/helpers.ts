@@ -5,7 +5,8 @@ import {
   Bytes,
   ethereum,
 } from "@graphprotocol/graph-ts";
-import { UniswapQuoter } from "./UniswapQuoter";
+import { UniswapQuoter } from "../../generated/LpETH/UniswapQuoter";
+import { SwapPool, SwapPoolDay } from "../../generated/schema";
 
 export const ADDRESS_ZERO = Address.fromString(
   "0x0000000000000000000000000000000000000000"
@@ -38,7 +39,7 @@ export const WETH_MAINNET = Address.fromString(
 const REBASE_TOPIC =
   "0x11c6bf55864ff83827df712625d7a80e5583eef0264921025e7cd22003a21511";
 
-export const ethUsd = (): BigDecimal => {
+export const ETHUSD = (): BigDecimal => {
   const quoter = UniswapQuoter.bind(QUOTER);
 
   // Call Uniswap's quoteExactInputSingle to get the ETH/USDC price
@@ -121,3 +122,25 @@ export function findClosestRebaseEvent(
 
   return null;
 }
+
+export const initiatePoolDay = (pool: SwapPool, dayID: BigInt): SwapPoolDay => {
+  const poolDay = new SwapPoolDay(pool.id.concat("-").concat(dayID.toString()));
+
+  poolDay.date = dayID.toI32();
+  poolDay.pool = pool.id;
+
+  poolDay.totalSupply = pool.totalSupply;
+  poolDay.liabilities = pool.liabilities;
+  poolDay.unlocking = pool.unlocking;
+
+  poolDay.volume = BI_ZERO;
+  poolDay.volumeUSD = BD_ZERO;
+  poolDay.fees = BI_ZERO;
+  poolDay.feesUSD = BD_ZERO;
+  poolDay.lpRewards = BI_ZERO;
+  poolDay.lpRewardsUSD = BD_ZERO;
+  poolDay.treasuryCut = BI_ZERO;
+  poolDay.treasuryCutUSD = BD_ZERO;
+
+  return poolDay;
+};

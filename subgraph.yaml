@@ -5,12 +5,12 @@ schema:
   file: ./schema.graphql
 dataSources:
   - kind: ethereum
-    name: LpETH
+    name: lpeth
     network: mainnet
     source:
-      address: "0x3a03f8223A6dffe7Ce26055B6f86Ee8b96F6acE8"
+      address: "0xF3a75E087A92770b4150fFF14c6d36FB07796252"
       abi: LpETH
-      startBlock: 0
+      startBlock: 21022294
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -20,9 +20,8 @@ dataSources:
         - BatchUnlockRedeemed
         - ClaimWithdrawRequest
         - Deposit
-        - Initialized
-        - OwnershipTransferred
         - RelayerRewardsClaimed
+        - Swap
         - SwapPool
         - SwapPoolDay
         - UnlockBought
@@ -34,7 +33,11 @@ dataSources:
       abis:
         - name: LpETH
           file: ./abis/LpETH.json
+        - name: UniswapQuoter
+          file: ./abis/UniswapQuoter.json
       eventHandlers:
+        - event: Initialized(uint64)
+          handler: handleInitialize
         - event: BatchUnlockBought(indexed address,uint256,uint256,uint256,uint256[])
           handler: handleBatchUnlockBought
         - event: BatchUnlockRedeemed(indexed address,uint256,uint256,uint256,uint256[])
@@ -53,4 +56,4 @@ dataSources:
           handler: handleUnlockRedeemed
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
-      file: ./src/mappings/lp-eth.ts
+      file: ./src/mappings/lpeth.ts
