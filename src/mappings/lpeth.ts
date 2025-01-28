@@ -171,8 +171,8 @@ export function handleSwap(event: SwapEvent): void {
   const usdPrice = ETHUSD();
   const amountInUSD = usdPrice.times(convertToDecimal(event.params.amountIn));
   const feeInUSD = usdPrice.times(convertToDecimal(event.params.fee));
-
-  let swapId = event.params.caller.toHex().concat("-").concat(pool.numSwaps.toString());
+  let numSwaps = pool.numSwaps.plus(BigInt.fromI32(1));
+  let swapId = event.params.caller.toHex().concat("-").concat(numSwaps.toString());
   let swap = new Swap(swapId);
   swap.pool = pool.id;
   swap.amount = event.params.amountIn;
@@ -191,6 +191,7 @@ export function handleSwap(event: SwapEvent): void {
   pool.volumeUSD = pool.volumeUSD.plus(amountInUSD);
   pool.fees = pool.fees.plus(event.params.fee);
   pool.feesUSD = pool.feesUSD.plus(feeInUSD);
+  pool.numSwaps = numSwaps;
   pool.save();
 
   let dayID = calculateDayID(event.block.timestamp);
