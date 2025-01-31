@@ -419,16 +419,19 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
   }
 
   let lp = LiquidityPosition.load(from.concat('-').concat(pool.id))
-  if (lp == null) return;
+  if (lp != null) {
+    let totalSupply = pool.totalSupply
+    let bal = lp.shares.times(pool.liabilities.times(TEN_18).div(totalSupply)).div(TEN_18)
+    let amount = event.params.value
+    if (bal.minus(lp.netDeposits).lt(amount)) {
+        // if rewards less than amount, set net deposits
+        // to balance minus what wasnt subtracted from the rewards
+        lp.netDeposits = bal.minus(amount)
+    }
+    lp.save()
+  };
 
-  let totalSupply = pool.totalSupply
-  let bal = lp.shares.times(pool.liabilities.times(TEN_18).div(totalSupply)).div(TEN_18)
-  let amount = event.params.value
-  if (bal.minus(lp.netDeposits).lt(amount)) {
-      // if rewards less than amount, set net deposits
-      // to balance minus what wasnt subtracted from the rewards
-      lp.netDeposits = bal.minus(amount)
-  }
+
 
   let lpTo = LiquidityPosition.load(to.concat('-').concat(pool.id))
   if (lpTo == null) {
@@ -441,6 +444,5 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
   let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities)
   lpTo.shares = lpTo.shares.plus(shares)
   lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value)
-  lp.save()
   lpTo.save()
 }
