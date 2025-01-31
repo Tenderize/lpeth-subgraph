@@ -1026,6 +1026,19 @@ export class SwapPool extends Entity {
     this.set("numSwaps", Value.fromBigInt(value));
   }
 
+  get lpToken(): Bytes {
+    let value = this.get("lpToken");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBytes();
+    }
+  }
+
+  set lpToken(value: Bytes) {
+    this.set("lpToken", Value.fromBytes(value));
+  }
+
   get poolDays(): SwapPoolDayLoader {
     return new SwapPoolDayLoader(
       "SwapPool",

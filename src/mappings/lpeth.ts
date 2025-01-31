@@ -5,6 +5,7 @@ import {
   ClaimWithdrawRequest as ClaimWithdrawRequestEvent,
   Deposit as DepositEvent,
   Initialized as InitializedEvent,
+  LpETH,
   RelayerRewardsClaimed as RelayerRewardsClaimedEvent,
   Swap as SwapEvent,
   UnlockBought as UnlockBoughtEvent,
@@ -35,10 +36,12 @@ import {
   ETHUSD,
   TEN_18,
 } from "./helpers";
-
-
+import {SwapPoolToken} from '../../generated/templates'
+import {Transfer as LpETHTransferEmitted} from '../../generated/templates/SwapPoolToken/ERC20'
 export function handleInitialize(event: InitializedEvent): void {
   let pool = new SwapPool(event.address.toHex());
+  let lpTokenAddr = LpETH.bind(event.address).lpToken()
+
   pool.totalSupply = BI_ZERO;
   pool.liabilities = BI_ZERO;
   pool.volume = BI_ZERO;
@@ -52,7 +55,9 @@ export function handleInitialize(event: InitializedEvent): void {
   pool.unlocking = BI_ZERO;
   pool.id = event.address.toHex();
   pool.numSwaps = BI_ZERO;
+  pool.lpToken = lpTokenAddr;
   pool.save();
+  SwapPoolToken.create(lpTokenAddr)
 }
 
 export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
@@ -399,4 +404,42 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
+}
+
+export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
+  let pool = SwapPool.load(event.address.toHex())
+  if (pool == null) return;
+
+  let from = event.params.from.toHex();
+  let to = event.params.to.toHex();
+  let user = User.load(from)
+  if (user == null) {
+      user = new User(from)
+      user.save()
+  }
+
+  let lp = LiquidityPosition.load(from.concat('-').concat(pool.id))
+  if (lp == null) return;
+
+  let totalSupply = pool.totalSupply
+  let bal = lp.shares.times(pool.liabilities.times(TEN_18).div(totalSupply)).div(TEN_18)
+  let amount = event.params.value
+  if (bal.minus(lp.netDeposits).lt(amount)) {
+      // if rewards less than amount, set net deposits
+      // to balance minus what wasnt subtracted from the rewards
+      lp.netDeposits = bal.minus(amount)
+  }
+
+  let lpTo = LiquidityPosition.load(to.concat('-').concat(pool.id))
+  if (lpTo == null) {
+      lpTo = new LiquidityPosition(to.concat('-').concat(pool.id))
+      lpTo.user = to
+      lpTo.pool = pool.id
+      lpTo.shares = BI_ZERO
+      lpTo.netDeposits = BI_ZERO
+  }
+  lpTo.shares = lpTo.shares.plus(event.params.value)
+  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value)
+  lp.save()
+  lpTo.save()
 }
