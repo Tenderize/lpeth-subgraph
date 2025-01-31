@@ -412,12 +412,12 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
 
   let from = event.params.from.toHex();
   let to = event.params.to.toHex();
-  let user = User.load(from)
-  if (user == null) {
-      user = new User(from)
-      user.save()
+  let toUser = User.load(to)
+  if (toUser == null) {
+      toUser = new User(to)
+      toUser.save()
   }
-
+  
   let lp = LiquidityPosition.load(from.concat('-').concat(pool.id))
   if (lp == null) return;
 

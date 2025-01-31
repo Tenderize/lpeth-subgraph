@@ -65,7 +65,7 @@ templates:
       abi: ERC20
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.7
       language: wasm/assemblyscript
       file: ./src/mappings/lpeth.ts
       entities:
@@ -75,4 +75,4 @@ templates:
           file: ./abis/ERC20.json
       eventHandlers:
         - event: Transfer(indexed address,indexed address,uint256)
-          handler: handleSwapTokenTransfer
+          handler: handleLpETHTransfer
