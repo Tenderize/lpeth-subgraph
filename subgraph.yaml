@@ -70,6 +70,7 @@ templates:
       file: ./src/mappings/lpeth.ts
       entities:
         - SwapPool
+        - SwapLPTokenTransfer
       abis:
         - name: ERC20
           file: ./abis/ERC20.json

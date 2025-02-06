@@ -12,6 +12,7 @@ import {
   UnlockRedeemed as UnlockRedeemedEvent,
   Withdraw as WithdrawEvent,
 } from "../../generated/LpETH/LpETH";
+import {SwapLPTokenTransfer} from '../../generated/schema'
 import {
   BatchUnlockBought,
   BatchUnlockRedeemed,
@@ -445,4 +446,13 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
   lpTo.shares = lpTo.shares.plus(shares)
   lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value)
   lpTo.save()
+
+  let transfer = new SwapLPTokenTransfer(event.transaction.hash.toHex().concat('-').concat(event.logIndex.toString()))
+  transfer.timestamp = event.block.timestamp.toI32()
+  transfer.blockNumber = event.block.number
+  transfer.from = from
+  transfer.to = to
+  transfer.amount = event.params.value
+  transfer.SwapPool = pool.id
+  transfer.save()
 }

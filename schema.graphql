@@ -139,6 +139,19 @@ type Withdraw @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
+type SwapLPTokenTransfer @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+  blockNumber: BigInt!
+
+  from: String!
+  to: String!
+  amount: BigInt!
+
+  # Relational fields
+  SwapPool: SwapPool!
+}
+
 type User @entity {
   id: ID! # user address
   liquidityPositions: [LiquidityPosition!] @derivedFrom(field: "user")
