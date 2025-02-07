@@ -80,7 +80,7 @@ type SwapPool @entity {
   treasuryCutUSD: BigDecimal! # treasury cut in USD
   # unlockQueue: [SwapQueueItem!]! @derivedFrom(field: "pool")
   numSwaps: BigInt! # number of swaps
-
+  lpToken: Bytes! # LP token address
   poolDays: [SwapPoolDay!]! @derivedFrom(field: "pool")
 }
 
@@ -137,6 +137,19 @@ type Withdraw @entity(immutable: true) {
   blockNumber: BigInt!
   blockTimestamp: BigInt!
   transactionHash: Bytes!
+}
+
+type SwapLPTokenTransfer @entity(immutable: true) {
+  id: ID!
+  timestamp: Int!
+  blockNumber: BigInt!
+
+  from: String!
+  to: String!
+  amount: BigInt!
+
+  # Relational fields
+  SwapPool: SwapPool!
 }
 
 type User @entity {

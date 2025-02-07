@@ -5,12 +5,14 @@ import {
   ClaimWithdrawRequest as ClaimWithdrawRequestEvent,
   Deposit as DepositEvent,
   Initialized as InitializedEvent,
+  LpETH,
   RelayerRewardsClaimed as RelayerRewardsClaimedEvent,
   Swap as SwapEvent,
   UnlockBought as UnlockBoughtEvent,
   UnlockRedeemed as UnlockRedeemedEvent,
   Withdraw as WithdrawEvent,
 } from "../../generated/LpETH/LpETH";
+import {SwapLPTokenTransfer} from '../../generated/schema'
 import {
   BatchUnlockBought,
   BatchUnlockRedeemed,
@@ -35,10 +37,12 @@ import {
   ETHUSD,
   TEN_18,
 } from "./helpers";
-
-
+import {SwapPoolToken} from '../../generated/templates'
+import {Transfer as LpETHTransferEmitted} from '../../generated/templates/SwapPoolToken/ERC20'
 export function handleInitialize(event: InitializedEvent): void {
   let pool = new SwapPool(event.address.toHex());
+  let lpTokenAddr = LpETH.bind(event.address).lpToken()
+
   pool.totalSupply = BI_ZERO;
   pool.liabilities = BI_ZERO;
   pool.volume = BI_ZERO;
@@ -52,7 +56,9 @@ export function handleInitialize(event: InitializedEvent): void {
   pool.unlocking = BI_ZERO;
   pool.id = event.address.toHex();
   pool.numSwaps = BI_ZERO;
+  pool.lpToken = lpTokenAddr;
   pool.save();
+  SwapPoolToken.create(lpTokenAddr)
 }
 
 export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
@@ -222,23 +228,22 @@ export function handleWithdraw(event: WithdrawEvent): void {
   let pool = SwapPool.load(event.address.toHex());
   if (pool == null) return;
 
-  let user = event.params.to.toHexString();
+  let user = event.params.to.toHex();
   let lp = LiquidityPosition.load(user.concat("-").concat(pool.id));
-  if (lp == null) return;
-  let bal = lp.shares
-    .times(pool.liabilities.times(TEN_18).div(pool.totalSupply))
-    .div(TEN_18);
-  let amount = event.params.amount;
-  if (bal.minus(lp.netDeposits).lt(amount)) {
-    // if rewards less than amount, set net deposits
-    // to balance minus what wasnt subtracted from the rewards
-    lp.netDeposits = bal.minus(amount);
-  } else {
-    // withdrawn rewards, do nothing
+  if (lp != null) {
+    let bal = lp.shares
+      .times(pool.liabilities.div(pool.totalSupply));
+    let amount = event.params.amount;
+    if (bal.minus(lp.netDeposits).lt(amount)) {
+      // if rewards less than amount, set net deposits
+      // to balance minus what wasnt subtracted from the rewards
+      lp.netDeposits = bal.minus(amount);
+    } else {
+      // withdrawn rewards, do nothing
+    }
+    lp.shares = lp.shares.minus(event.params.lpSharesBurnt);
+    lp.save();
   }
-  lp.shares = lp.shares.minus(event.params.lpSharesBurnt);
-  lp.save();
-
   pool.totalSupply = pool.totalSupply.minus(event.params.lpSharesBurnt);
   pool.liabilities = pool.liabilities.minus(event.params.amount);
 
@@ -249,6 +254,7 @@ export function handleWithdraw(event: WithdrawEvent): void {
   poolDay.save();
   pool.save();
 }
+
 export function handleDeposit(event: DepositEvent): void {
   let entity = new Deposit(
     event.transaction.hash.concatI32(event.logIndex.toI32())
@@ -273,7 +279,7 @@ export function handleDeposit(event: DepositEvent): void {
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
   if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
 
-  let from = event.params.from.toHexString();
+  let from = event.params.from.toHex();
   let user = User.load(from);
   if (user == null) {
     user = new User(from);
@@ -399,4 +405,54 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
   poolDay.treasuryCutUSD = poolDay.treasuryCutUSD.plus(treasuryCutInUSD);
   poolDay.liabilities = poolDay.liabilities.plus(event.params.lpFees);
   poolDay.save();
+}
+
+export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
+  let pool = SwapPool.load(event.address.toHex())
+  if (pool == null) return;
+
+  let from = event.params.from.toHex();
+  let to = event.params.to.toHex();
+  let toUser = User.load(to)
+  if (toUser == null) {
+      toUser = new User(to)
+      toUser.save()
+  }
+
+  let lp = LiquidityPosition.load(from.concat('-').concat(pool.id))
+  if (lp != null) {
+    let totalSupply = pool.totalSupply
+    let bal = lp.shares.times(pool.liabilities.times(TEN_18).div(totalSupply)).div(TEN_18)
+    let amount = event.params.value
+    if (bal.minus(lp.netDeposits).lt(amount)) {
+        // if rewards less than amount, set net deposits
+        // to balance minus what wasnt subtracted from the rewards
+        lp.netDeposits = bal.minus(amount)
+    }
+    lp.save()
+  };
+
+
+
+  let lpTo = LiquidityPosition.load(to.concat('-').concat(pool.id))
+  if (lpTo == null) {
+      lpTo = new LiquidityPosition(to.concat('-').concat(pool.id))
+      lpTo.user = to
+      lpTo.pool = pool.id
+      lpTo.shares = BI_ZERO
+      lpTo.netDeposits = BI_ZERO
+  }
+  let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities)
+  lpTo.shares = lpTo.shares.plus(shares)
+  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value)
+  lpTo.save()
+
+  let transfer = new SwapLPTokenTransfer(event.transaction.hash.toHex().concat('-').concat(event.logIndex.toString()))
+  transfer.timestamp = event.block.timestamp.toI32()
+  transfer.blockNumber = event.block.number
+  transfer.from = from
+  transfer.to = to
+  transfer.amount = event.params.value
+  transfer.SwapPool = pool.id
+  transfer.save()
 }
