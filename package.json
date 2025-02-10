@@ -1,22 +1,21 @@
 {
-  "name": "lpeth-subgraph",
-  "license": "UNLICENSED",
-  "scripts": {
-    "clean" : "rm -rf build",
-    "auth": "graph auth",
-    "codegen": "graph codegen",
-    "build": "graph build",
-    "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ lpeth",
-    "create-local": "graph create --node http://localhost:8020/ lpeth",
-    "remove-local": "graph remove --node http://localhost:8020/ lpeth",
-    "deploy-local": "graph deploy --node http://localhost:8020/ --ipfs http://localhost:5001 lpeth",
-    "test": "graph test"
-  },
-  "dependencies": {
-    "@graphprotocol/graph-cli": "0.86.0",
-    "@graphprotocol/graph-ts": "0.32.0"
-  },
-  "devDependencies": {
-    "matchstick-as": "0.5.0"
-  }
+    "name": "@lpeth/monorepo",
+    "version": "0.0.1",
+    "private": true,
+    "workspaces": {
+        "nohoist": [
+            "**/@graphprotocol/graph-ts",
+            "**/@graphprotocol/graph-ts/**",
+            "**/wagmi",
+            "**/wagmi/**",
+            "**/@wagmi",
+            "**/@wagmi/**"
+        ],
+        "packages": [
+            "packages/*"
+        ]
+    },
+    "engines": {
+        "node": ">=16.4.0"
+    }
 }

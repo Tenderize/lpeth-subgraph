@@ -1,0 +1,24 @@
+{
+  "name": "graph-client",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "scripts": {
+    "start": "ts-node index.ts --transpileOnly",
+    "build": "graphclient build && tsc",
+    "codegen": "graphclient build",
+    "dev": "graphclient serve-dev",
+    "prettier:check": "prettier --check \"**/*.{ts,md,yaml,gql}\"",
+    "prettier:write": "prettier --write \"**/*.{ts,md,yaml,gql}\""
+  },
+  "peerDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "dependencies": {
+    "@graphprotocol/client-cli": "^3.0.7",
+    "@types/node": "^22.9.0",
+    "ts-node": "^10.9.2"
+  }
+}

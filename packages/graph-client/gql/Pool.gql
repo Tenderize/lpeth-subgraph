@@ -1,0 +1,75 @@
+query getPools($dateFilter: Int = 0, $first: Int = 1000, $skip: Int = 0) {
+  swapPools {
+    id
+    lpToken
+
+    liabilities
+    totalSupply
+    unlocking
+
+    volume
+    volumeUSD
+    fees
+    feesUSD
+    lpRewards
+    lpRewardsUSD
+
+    poolDays(
+      where: { date_gte: $dateFilter }
+      orderBy: date
+      orderDirection: desc
+    ) {
+      date
+      id
+
+      liabilities
+      totalSupply
+      unlocking
+
+      volume
+      volumeUSD
+      fees
+      feesUSD
+      lpRewards
+      lpRewardsUSD
+    }
+  }
+}
+
+query getPool($id: ID!, $dateFilter: Int = 0) {
+  swapPool(id: $id) {
+    id
+    lpToken
+
+    liabilities
+    totalSupply
+    unlocking
+
+    volume
+    volumeUSD
+    fees
+    feesUSD
+    lpRewards
+    lpRewardsUSD
+
+    poolDays(
+      where: { date_gte: $dateFilter }
+      orderBy: date
+      orderDirection: desc
+    ) {
+      date
+      id
+
+      liabilities
+      totalSupply
+      unlocking
+
+      volume
+      volumeUSD
+      fees
+      feesUSD
+      lpRewards
+      lpRewardsUSD
+    }
+  }
+}
