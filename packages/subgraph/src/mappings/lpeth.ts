@@ -12,6 +12,7 @@ import {
   UnlockRedeemed as UnlockRedeemedEvent,
   Withdraw as WithdrawEvent,
 } from "../../generated/LpETH/LpETH";
+import {SwapLPTokenTransfer} from '../../generated/schema'
 import {
   BatchUnlockBought,
   BatchUnlockRedeemed,
@@ -20,7 +21,6 @@ import {
   LiquidityPosition,
   RelayerRewardsClaimed,
   Swap,
-  SwapLPTokenTransfer,
   SwapPool,
   SwapPoolDay,
   UnlockBought,
@@ -28,20 +28,20 @@ import {
   User,
   Withdraw,
 } from "../../generated/schema";
-import { SwapPoolToken } from "../../generated/templates";
-import { Transfer as LpETHTransferEmitted } from "../../generated/templates/SwapPoolToken/ERC20";
 import {
+  initiatePoolDay,
   BD_ZERO,
   BI_ZERO,
   calculateDayID,
   convertToDecimal,
   ETHUSD,
-  initiatePoolDay,
   TEN_18,
 } from "./helpers";
+import {SwapPoolToken} from '../../generated/templates'
+import {Transfer as LpETHTransferEmitted} from '../../generated/templates/SwapPoolToken/ERC20'
 export function handleInitialize(event: InitializedEvent): void {
   let pool = new SwapPool(event.address.toHex());
-  let lpTokenAddr = LpETH.bind(event.address).lpToken();
+  let lpTokenAddr = LpETH.bind(event.address).lpToken()
 
   pool.totalSupply = BI_ZERO;
   pool.liabilities = BI_ZERO;
@@ -58,7 +58,7 @@ export function handleInitialize(event: InitializedEvent): void {
   pool.numSwaps = BI_ZERO;
   pool.lpToken = lpTokenAddr;
   pool.save();
-  SwapPoolToken.create(lpTokenAddr);
+  SwapPoolToken.create(lpTokenAddr)
 }
 
 export function handleBatchUnlockBought(event: BatchUnlockBoughtEvent): void {
@@ -178,10 +178,7 @@ export function handleSwap(event: SwapEvent): void {
   const amountInUSD = usdPrice.times(convertToDecimal(event.params.amountIn));
   const feeInUSD = usdPrice.times(convertToDecimal(event.params.fee));
   let numSwaps = pool.numSwaps.plus(BigInt.fromI32(1));
-  let swapId = event.params.caller
-    .toHex()
-    .concat("-")
-    .concat(numSwaps.toString());
+  let swapId = event.params.caller.toHex().concat("-").concat(numSwaps.toString());
   let swap = new Swap(swapId);
   swap.pool = pool.id;
   swap.amount = event.params.amountIn;
@@ -193,7 +190,7 @@ export function handleSwap(event: SwapEvent): void {
   swap.blockNumber = event.block.number;
   swap.blockTimestamp = event.block.timestamp;
   swap.transactionHash = event.transaction.hash;
-  swap.save();
+  swap.save()
 
   pool.unlocking = pool.unlocking.plus(event.params.amountIn);
   pool.volume = pool.volume.plus(event.params.amountIn);
@@ -234,7 +231,8 @@ export function handleWithdraw(event: WithdrawEvent): void {
   let user = event.params.to.toHex();
   let lp = LiquidityPosition.load(user.concat("-").concat(pool.id));
   if (lp != null) {
-    let bal = lp.shares.times(pool.liabilities.div(pool.totalSupply));
+    let bal = lp.shares
+      .times(pool.liabilities.div(pool.totalSupply));
     let amount = event.params.amount;
     if (bal.minus(lp.netDeposits).lt(amount)) {
       // if rewards less than amount, set net deposits
@@ -410,53 +408,51 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
 }
 
 export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
-  let pool = SwapPool.load(event.address.toHex());
+  let pool = SwapPool.load(event.address.toHex())
   if (pool == null) return;
 
   let from = event.params.from.toHex();
   let to = event.params.to.toHex();
-  let toUser = User.load(to);
+  let toUser = User.load(to)
   if (toUser == null) {
-    toUser = new User(to);
-    toUser.save();
+      toUser = new User(to)
+      toUser.save()
   }
 
-  let lp = LiquidityPosition.load(from.concat("-").concat(pool.id));
+  let lp = LiquidityPosition.load(from.concat('-').concat(pool.id))
   if (lp != null) {
-    let totalSupply = pool.totalSupply;
-    let bal = lp.shares
-      .times(pool.liabilities.times(TEN_18).div(totalSupply))
-      .div(TEN_18);
-    let amount = event.params.value;
+    let totalSupply = pool.totalSupply
+    let bal = lp.shares.times(pool.liabilities.times(TEN_18).div(totalSupply)).div(TEN_18)
+    let amount = event.params.value
     if (bal.minus(lp.netDeposits).lt(amount)) {
-      // if rewards less than amount, set net deposits
-      // to balance minus what wasnt subtracted from the rewards
-      lp.netDeposits = bal.minus(amount);
+        // if rewards less than amount, set net deposits
+        // to balance minus what wasnt subtracted from the rewards
+        lp.netDeposits = bal.minus(amount)
     }
-    lp.save();
-  }
+    lp.save()
+  };
 
-  let lpTo = LiquidityPosition.load(to.concat("-").concat(pool.id));
+
+
+  let lpTo = LiquidityPosition.load(to.concat('-').concat(pool.id))
   if (lpTo == null) {
-    lpTo = new LiquidityPosition(to.concat("-").concat(pool.id));
-    lpTo.user = to;
-    lpTo.pool = pool.id;
-    lpTo.shares = BI_ZERO;
-    lpTo.netDeposits = BI_ZERO;
+      lpTo = new LiquidityPosition(to.concat('-').concat(pool.id))
+      lpTo.user = to
+      lpTo.pool = pool.id
+      lpTo.shares = BI_ZERO
+      lpTo.netDeposits = BI_ZERO
   }
-  let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities);
-  lpTo.shares = lpTo.shares.plus(shares);
-  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value);
-  lpTo.save();
+  let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities)
+  lpTo.shares = lpTo.shares.plus(shares)
+  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value)
+  lpTo.save()
 
-  let transfer = new SwapLPTokenTransfer(
-    event.transaction.hash.toHex().concat("-").concat(event.logIndex.toString())
-  );
-  transfer.timestamp = event.block.timestamp.toI32();
-  transfer.blockNumber = event.block.number;
-  transfer.from = from;
-  transfer.to = to;
-  transfer.amount = event.params.value;
-  transfer.SwapPool = pool.id;
-  transfer.save();
+  let transfer = new SwapLPTokenTransfer(event.transaction.hash.toHex().concat('-').concat(event.logIndex.toString()))
+  transfer.timestamp = event.block.timestamp.toI32()
+  transfer.blockNumber = event.block.number
+  transfer.from = from
+  transfer.to = to
+  transfer.amount = event.params.value
+  transfer.SwapPool = pool.id
+  transfer.save()
 }
