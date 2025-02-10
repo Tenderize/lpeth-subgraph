@@ -1,7 +1,6 @@
 query getPools($dateFilter: Int = 0, $first: Int = 1000, $skip: Int = 0) {
   swapPools {
     id
-    asset
     lpToken
 
     liabilities
@@ -40,7 +39,6 @@ query getPools($dateFilter: Int = 0, $first: Int = 1000, $skip: Int = 0) {
 query getPool($id: ID!, $dateFilter: Int = 0) {
   swapPool(id: $id) {
     id
-    asset
     lpToken
 
     liabilities

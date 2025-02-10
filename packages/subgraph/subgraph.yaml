@@ -57,3 +57,23 @@ dataSources:
         - event: Withdraw(indexed address,uint256,uint256,uint256)
           handler: handleWithdraw
       file: ./src/mappings/lpeth.ts
+templates:
+  - name: SwapPoolToken
+    kind: ethereum/contract
+    network: mainnet
+    source:
+      abi: ERC20
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/lpeth.ts
+      entities:
+        - SwapPool
+        - SwapLPTokenTransfer
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleLpETHTransfer

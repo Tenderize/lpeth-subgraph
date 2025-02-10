@@ -2,6 +2,8 @@
   "name": "lpeth-subgraph",
   "license": "UNLICENSED",
   "scripts": {
+    "clean" : "rm -rf build",
+    "auth": "graph auth",
     "codegen": "graph codegen",
     "build": "graph build",
     "deploy": "graph deploy --node https://api.studio.thegraph.com/deploy/ lpeth",
