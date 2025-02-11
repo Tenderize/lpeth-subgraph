@@ -9,7 +9,7 @@ import { getMesh, ExecuteMeshFn, SubscribeMeshFn, MeshContext as BaseMeshContext
 import { MeshStore, FsStoreStorageAdapter } from '@graphql-mesh/store';
 import { path as pathModule } from '@graphql-mesh/cross-helpers';
 import { ImportFn } from '@graphql-mesh/types';
-import type { TenderizeTypes } from './sources/Tenderize/types';
+import type { LpEthTypes } from './sources/lpEth/types';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -2735,7 +2735,7 @@ export type DirectiveResolvers<ContextType = MeshContext> = ResolversObject<{
   derivedFrom?: derivedFromDirectiveResolver<any, any, ContextType>;
 }>;
 
-export type MeshContext = TenderizeTypes.Context & BaseMeshContext;
+export type MeshContext = LpEthTypes.Context & BaseMeshContext;
 
 
 import { fileURLToPath } from '@graphql-mesh/utils';

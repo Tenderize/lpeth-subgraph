@@ -14,11 +14,11 @@
     "prettier:write": "prettier --write \"**/*.{ts,md,yaml,gql}\""
   },
   "peerDependencies": {
-    "typescript": "^5.6.3"
+    "typescript": "^5.1.6"
   },
   "dependencies": {
-    "@graphprotocol/client-cli": "^3.0.7",
-    "@types/node": "^22.9.0",
-    "ts-node": "^10.9.2"
+    "@graphprotocol/client-cli": "^3.0.0",
+    "@types/node": "^20.3.3",
+    "ts-node": "^10.9.1"
   }
 }
