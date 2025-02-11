@@ -1,0 +1,9 @@
+sources:
+  - name: Tenderize
+    handler:
+      graphql:
+        endpoint: "https://api.studio.thegraph.com/query/93675/lpeth/version/latest"
+documents:
+  - ./gql/**/*.gql
+
+  # TODO: replace the END point with  ethsubraph url :)
