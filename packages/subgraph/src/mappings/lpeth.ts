@@ -20,7 +20,7 @@ import {
   LiquidityPosition,
   RelayerRewardsClaimed,
   Swap,
-  SwapLPTokenTransfer,
+  SwapLPTokenTransferEvent,
   SwapPool,
   SwapPoolDay,
   UnlockBought,
@@ -39,6 +39,8 @@ import {
   initiatePoolDay,
   TEN_18,
 } from "./helpers";
+
+const PRELAUNCH_ADDRESS = "0xcC73341a078761AB869D90030D6632F9ea139f2b".toLowerCase()
 export function handleInitialize(event: InitializedEvent): void {
   let pool = new SwapPool(event.address.toHex());
   let lpTokenAddr = LpETH.bind(event.address).lpToken();
@@ -281,13 +283,18 @@ export function handleDeposit(event: DepositEvent): void {
   let poolDay = SwapPoolDay.load(pool.id.concat("-").concat(dayID.toString()));
   if (poolDay == null) poolDay = initiatePoolDay(pool, dayID);
 
-  let from = event.params.from.toHex();
-  let user = User.load(from);
-  if (user == null) {
-    user = new User(from);
-    user.save();
-  }
 
+  poolDay.save();
+  pool.save();
+
+  let from = event.params.from.toHex();
+  if (from == PRELAUNCH_ADDRESS) return;
+    let user = User.load(from);
+    if (user == null) {
+      user = new User(from);
+      user.save();
+    }
+  
   let lp = LiquidityPosition.load(from.concat("-").concat(pool.id));
   if (lp == null) {
     lp = new LiquidityPosition(from.concat("-").concat(pool.id));
@@ -299,8 +306,7 @@ export function handleDeposit(event: DepositEvent): void {
   lp.shares = lp.shares.plus(event.params.lpSharesMinted);
   lp.netDeposits = lp.netDeposits.plus(event.params.amount);
   lp.save();
-  poolDay.save();
-  pool.save();
+
 }
 
 export function handleRelayerRewardsClaimed(
@@ -421,6 +427,23 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
     toUser.save();
   }
 
+  let lpTo = LiquidityPosition.load(to.concat("-").concat(pool.id));
+  if (lpTo == null) {
+    lpTo = new LiquidityPosition(to.concat("-").concat(pool.id));
+    lpTo.user = to;
+    lpTo.pool = pool.id;
+    lpTo.shares = BI_ZERO;
+    lpTo.netDeposits = BI_ZERO;
+  }
+  let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities);
+  lpTo.shares = lpTo.shares.plus(shares);
+  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value);
+  lpTo.save();
+
+  // If the transfer comes from the pre-launch contract
+  // We simply return and can treat this as a mint of LP Tokens instead.
+  if (from == PRELAUNCH_ADDRESS) return;
+
   let lp = LiquidityPosition.load(from.concat("-").concat(pool.id));
   if (lp != null) {
     let totalSupply = pool.totalSupply;
@@ -436,20 +459,7 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
     lp.save();
   }
 
-  let lpTo = LiquidityPosition.load(to.concat("-").concat(pool.id));
-  if (lpTo == null) {
-    lpTo = new LiquidityPosition(to.concat("-").concat(pool.id));
-    lpTo.user = to;
-    lpTo.pool = pool.id;
-    lpTo.shares = BI_ZERO;
-    lpTo.netDeposits = BI_ZERO;
-  }
-  let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities);
-  lpTo.shares = lpTo.shares.plus(shares);
-  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value);
-  lpTo.save();
-
-  let transfer = new SwapLPTokenTransfer(
+  let transfer = new SwapLPTokenTransferEvent(
     event.transaction.hash.toHex().concat("-").concat(event.logIndex.toString())
   );
   transfer.timestamp = event.block.timestamp.toI32();
