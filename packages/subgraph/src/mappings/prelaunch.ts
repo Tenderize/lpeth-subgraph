@@ -42,6 +42,7 @@ export function handleDepositETH(call: DepositETHCall):void {
     let position = PreLaunchPosition.load(call.from.toHexString())
     if (position == null) {
         position = new PreLaunchPosition(call.from.toHexString())
+        position.claimed = false
         position.amount = amount
         position.duration = call.inputs.duration
         position.account = call.from
@@ -86,6 +87,7 @@ export function handleDepositWETH(call: DepositWETHCall):void {
     let position = PreLaunchPosition.load(call.from.toHexString())
     if (position == null) {
         position = new PreLaunchPosition(call.from.toHexString())
+        position.claimed = false
         position.amount = amount
         position.duration = call.inputs.duration
         position.account = call.from
@@ -158,6 +160,7 @@ export function handleClaim (call: ClaimVeTokensCall):void {
         return
     }
     position.claimed = true
+    position.save()
 
   // liquidity position and user is created by the LP token transfer event from the pre-launch contract to this one
 }
