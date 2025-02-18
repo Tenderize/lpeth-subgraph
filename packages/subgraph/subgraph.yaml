@@ -10,6 +10,7 @@ dataSources:
     source:
       address: "0xcC73341a078761AB869D90030D6632F9ea139f2b"
       abi: PreLaunch
+      startBlock: 20692554
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

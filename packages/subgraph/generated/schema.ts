@@ -1786,8 +1786,8 @@ export class SwapLPTokenTransferEvent extends Entity {
     this.set("to", Value.fromString(value));
   }
 
-  get amount(): BigInt {
-    let value = this.get("amount");
+  get shares(): BigInt {
+    let value = this.get("shares");
     if (!value || value.kind == ValueKind.NULL) {
       throw new Error("Cannot return null for a required field.");
     } else {
@@ -1795,8 +1795,21 @@ export class SwapLPTokenTransferEvent extends Entity {
     }
   }
 
-  set amount(value: BigInt) {
-    this.set("amount", Value.fromBigInt(value));
+  set shares(value: BigInt) {
+    this.set("shares", Value.fromBigInt(value));
+  }
+
+  get value(): BigInt {
+    let value = this.get("value");
+    if (!value || value.kind == ValueKind.NULL) {
+      throw new Error("Cannot return null for a required field.");
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set value(value: BigInt) {
+    this.set("value", Value.fromBigInt(value));
   }
 
   get SwapPool(): string {
@@ -2063,6 +2076,23 @@ export class PreLaunchPosition extends Entity {
 
   set claimed(value: boolean) {
     this.set("claimed", Value.fromBoolean(value));
+  }
+
+  get claimedAt(): BigInt | null {
+    let value = this.get("claimedAt");
+    if (!value || value.kind == ValueKind.NULL) {
+      return null;
+    } else {
+      return value.toBigInt();
+    }
+  }
+
+  set claimedAt(value: BigInt | null) {
+    if (!value) {
+      this.unset("claimedAt");
+    } else {
+      this.set("claimedAt", Value.fromBigInt(<BigInt>value));
+    }
   }
 }
 

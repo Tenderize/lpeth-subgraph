@@ -31,6 +31,7 @@ import {
 import { SwapPoolToken } from "../../generated/templates";
 import { Transfer as LpETHTransferEmitted } from "../../generated/templates/SwapPoolToken/ERC20";
 import {
+  ADDRESS_ZERO,
   BD_ZERO,
   BI_ZERO,
   calculateDayID,
@@ -41,6 +42,8 @@ import {
 } from "./helpers";
 
 const PRELAUNCH_ADDRESS = "0xcC73341a078761AB869D90030D6632F9ea139f2b".toLowerCase()
+const LPETH_ADDRESS = "0xF3a75E087A92770b4150fFF14c6d36FB07796252".toLowerCase()
+
 export function handleInitialize(event: InitializedEvent): void {
   let pool = new SwapPool(event.address.toHex());
   let lpTokenAddr = LpETH.bind(event.address).lpToken();
@@ -236,7 +239,7 @@ export function handleWithdraw(event: WithdrawEvent): void {
   let user = event.params.to.toHex();
   let lp = LiquidityPosition.load(user.concat("-").concat(pool.id));
   if (lp != null) {
-    let bal = lp.shares.times(pool.liabilities.div(pool.totalSupply));
+    let bal = lp.shares.times(pool.liabilities).div(pool.totalSupply);
     let amount = event.params.amount;
     if (bal.minus(lp.netDeposits).lt(amount)) {
       // if rewards less than amount, set net deposits
@@ -416,7 +419,11 @@ export function handleUnlockRedeemed(event: UnlockRedeemedEvent): void {
 }
 
 export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
-  let pool = SwapPool.load(event.address.toHex());
+  // burn
+  if (event.params.to.toHex() == "0x0000000000000000000000000000000000000000") return;
+  // mint
+  if (event.params.from.toHex() == "0x0000000000000000000000000000000000000000") return;
+  let pool = SwapPool.load(LPETH_ADDRESS);
   if (pool == null) return;
 
   let from = event.params.from.toHex();
@@ -435,29 +442,11 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
     lpTo.shares = BI_ZERO;
     lpTo.netDeposits = BI_ZERO;
   }
-  let shares = event.params.value.times(pool.totalSupply).div(pool.liabilities);
+  let shares = event.params.value;
+  let value = shares.times(pool.liabilities).div(pool.totalSupply);
   lpTo.shares = lpTo.shares.plus(shares);
-  lpTo.netDeposits = lpTo.netDeposits.plus(event.params.value);
+  lpTo.netDeposits = lpTo.netDeposits.plus(value);
   lpTo.save();
-
-  // If the transfer comes from the pre-launch contract
-  // We simply return and can treat this as a mint of LP Tokens instead.
-  if (from == PRELAUNCH_ADDRESS) return;
-
-  let lp = LiquidityPosition.load(from.concat("-").concat(pool.id));
-  if (lp != null) {
-    let totalSupply = pool.totalSupply;
-    let bal = lp.shares
-      .times(pool.liabilities.times(TEN_18).div(totalSupply))
-      .div(TEN_18);
-    let amount = event.params.value;
-    if (bal.minus(lp.netDeposits).lt(amount)) {
-      // if rewards less than amount, set net deposits
-      // to balance minus what wasnt subtracted from the rewards
-      lp.netDeposits = bal.minus(amount);
-    }
-    lp.save();
-  }
 
   let transfer = new SwapLPTokenTransferEvent(
     event.transaction.hash.toHex().concat("-").concat(event.logIndex.toString())
@@ -466,7 +455,29 @@ export function handleLpETHTransfer(event: LpETHTransferEmitted): void {
   transfer.blockNumber = event.block.number;
   transfer.from = from;
   transfer.to = to;
-  transfer.amount = event.params.value;
+  transfer.shares = shares;
+  transfer.value =  value;
   transfer.SwapPool = pool.id;
   transfer.save();
+
+  if (from == PRELAUNCH_ADDRESS) return;
+
+  let lp = LiquidityPosition.load(from.concat("-").concat(pool.id));
+  if (lp != null) {
+    lp.shares = lp.shares.minus(event.params.value);
+    let totalSupply = pool.totalSupply;
+    let bal = lp.shares
+      .times(pool.liabilities).div(totalSupply);
+    if (bal.minus(lp.netDeposits).lt(value)) {
+      // if rewards less than amount, set net deposits
+      // to balance minus what wasnt subtracted from the rewards
+      let remainder = value.minus(bal.minus(lp.netDeposits));
+      if (remainder.lt(lp.netDeposits)) {
+      lp.netDeposits = bal.minus(remainder);
+      } else {
+           lp.netDeposits = BI_ZERO;
+      }
+    }
+    lp.save();
+  }
 }

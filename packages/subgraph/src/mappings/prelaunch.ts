@@ -2,6 +2,7 @@ import { BigDecimal, BigInt } from "@graphprotocol/graph-ts"
 import {DepositETHCall, DepositWETHCall, WithdrawCall, ClaimVeTokensCall, ChangeLockupCall} from "../../generated/PreLaunch/PreLaunch"
 import {Deposit, Withdraw, PreLaunchPosition, PreLaunch} from "../../generated/schema"
 import { BI_ZERO, TEN_18 } from "./helpers"
+import { log } from "@graphprotocol/graph-ts"
 
 const LPETH_ADDRESS = "0xF3a75E087A92770b4150fFF14c6d36FB07796252".toLowerCase()
 
@@ -27,8 +28,9 @@ const calculateWeightedDeposit = (amount: BigInt, epochs: BigInt): BigInt => {
     let e = parseInt(epochs.toString(), 10)
 
     let w = (x * (1 + (5 - 1)) * (e - 1) / (52 - 1)) ** 2.5
+    w = Math.floor(w * 10 ** 18)
 
-    return BigInt.fromString(BigDecimal.fromString(w.toString()).times(TEN_18.toBigDecimal()).toString())
+    return BigInt.fromString(BigDecimal.fromString(w.toString()).toString())
 }
 
 export function handleDepositETH(call: DepositETHCall):void {
@@ -37,6 +39,8 @@ export function handleDepositETH(call: DepositETHCall):void {
     let preLaunch = PreLaunch.load(call.to.toHexString())
     if (preLaunch == null) {
         preLaunch = new PreLaunch(call.to.toHexString())
+        preLaunch.amount = BI_ZERO
+        preLaunch.weightedAmount = BI_ZERO
     }
 
     let position = PreLaunchPosition.load(call.from.toHexString())
@@ -53,27 +57,17 @@ export function handleDepositETH(call: DepositETHCall):void {
         // subtract the current weighted amount from the total
         // we will add it back after we calculate the new weighted amount
         // in case the duration changed
-        preLaunch.amount = preLaunch.amount.minus(position.weightedAmount)
+        preLaunch.weightedAmount = preLaunch.weightedAmount.minus(position.weightedAmount)
     }
 
     let weighted = calculateWeightedDeposit(position.amount, position.duration)
+    log.debug("Weighted amount: {}", [weighted.toString()])
     position.weightedAmount = weighted
     position.save()
 
     preLaunch.amount = preLaunch.amount.plus(amount)
     preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
     preLaunch.save()
-
-    let deposit = new Deposit(
-        call.transaction.hash.concatI32(0)
-    )
-    deposit.from = call.from
-    deposit.amount = amount
-    deposit.lpSharesMinted = amount
-    deposit.blockTimestamp = call.block.timestamp
-    deposit.blockNumber = call.block.number
-    deposit.transactionHash = call.transaction.hash
-    deposit.save()
 }
 
 export function handleDepositWETH(call: DepositWETHCall):void {
@@ -82,6 +76,8 @@ export function handleDepositWETH(call: DepositWETHCall):void {
     let preLaunch = PreLaunch.load(call.to.toHexString())
     if (preLaunch == null) {
         preLaunch = new PreLaunch(call.to.toHexString())
+        preLaunch.amount = BI_ZERO
+        preLaunch.weightedAmount = BI_ZERO
     }
 
     let position = PreLaunchPosition.load(call.from.toHexString())
@@ -98,7 +94,7 @@ export function handleDepositWETH(call: DepositWETHCall):void {
         // subtract the current weighted amount from the total
         // we will add it back after we calculate the new weighted amount
         // in case the duration changed
-        preLaunch.amount = preLaunch.amount.minus(position.weightedAmount)
+        preLaunch.weightedAmount = preLaunch.weightedAmount.minus(position.weightedAmount)
     }
 
     let weighted = calculateWeightedDeposit(position.amount, position.duration)
@@ -108,18 +104,8 @@ export function handleDepositWETH(call: DepositWETHCall):void {
     preLaunch.amount = preLaunch.amount.plus(amount)
     preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
     preLaunch.save()
+} 
 
-    let deposit = new Deposit(
-        call.transaction.hash.concatI32(0)
-    )
-    deposit.from = call.from
-    deposit.amount = amount
-    deposit.lpSharesMinted = amount
-    deposit.blockTimestamp = call.block.timestamp
-    deposit.blockNumber = call.block.number
-    deposit.transactionHash = call.transaction.hash
-    deposit.save()
-}
 
 export function handleWithdraw(call: WithdrawCall):void {
     let amount = call.inputs.amount
@@ -141,16 +127,6 @@ export function handleWithdraw(call: WithdrawCall):void {
         preLaunch.weightedAmount = preLaunch.weightedAmount.minus(weighted)
         preLaunch.save()
     }
-
-    let withdraw = new Withdraw(call.transaction.hash.concatI32(0))
-    withdraw.amount = call.inputs.amount
-    withdraw.lpSharesBurnt = call.inputs.amount
-    withdraw.to = call.from
-    withdraw.blockTimestamp = call.block.timestamp
-    withdraw.blockNumber = call.block.number
-    withdraw.transactionHash = call.transaction.hash
-
-    withdraw.save()
 }
 
 export function handleClaim (call: ClaimVeTokensCall):void {
@@ -160,6 +136,7 @@ export function handleClaim (call: ClaimVeTokensCall):void {
         return
     }
     position.claimed = true
+    position.claimedAt = call.block.timestamp
     position.save()
 
   // liquidity position and user is created by the LP token transfer event from the pre-launch contract to this one
