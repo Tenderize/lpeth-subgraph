@@ -1,7 +1,0 @@
-sources:
-  - name: lpEth
-    handler:
-      graphql:
-        endpoint: "https://api.studio.thegraph.com/query/93675/lpeth/version/latest"
-
-  # TODO: replace the END point with  ethsubraph url :)
