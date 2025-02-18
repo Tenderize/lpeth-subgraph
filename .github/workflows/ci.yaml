@@ -1,0 +1,61 @@
+name: Bun CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [18.17.x]
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
+          # Removed yarn cache since we are using bun
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v1
+
+      # --- Subgraph Workspace ---
+      - name: Install dependencies in subgraph workspace
+        run: bun install
+        working-directory: packages/subgraph
+
+      - name: Run subgraph prettier:check
+        run: bun run prettier:check
+        working-directory: packages/subgraph
+
+      - name: Run subgraph prepare:mainnet
+        run: bun run prepare:mainnet
+        working-directory: packages/subgraph
+
+      - name: Run subgraph codegen
+        run: bun run codegen
+        working-directory: packages/subgraph
+
+      - name: Run subgraph build
+        run: bun run build
+        working-directory: packages/subgraph
+
+      # --- Client Workspace ---
+      - name: Install dependencies in client workspace
+        run: bun install
+        working-directory: packages/graph-client
+
+      - name: Run client prettier:check
+        run: bun run prettier:check
+        working-directory: packages/graph-client
+
+      - name: Run client codegen
+        run: bun run codegen
+        working-directory: packages/graph-client
