@@ -1,5 +1,5 @@
-import { newMockEvent } from "matchstick-as"
-import { ethereum, Address, BigInt } from "@graphprotocol/graph-ts"
+import { newMockEvent } from 'matchstick-as'
+import { ethereum, Address, BigInt } from '@graphprotocol/graph-ts'
 import {
   BatchUnlockBought,
   BatchUnlockRedeemed,
@@ -12,8 +12,8 @@ import {
   UnlockBought,
   UnlockRedeemed,
   Upgraded,
-  Withdraw
-} from "../generated/LpETH/LpETH"
+  Withdraw,
+} from '../generated/LpETH/LpETH'
 
 export function createBatchUnlockBoughtEvent(
   caller: Address,
@@ -26,23 +26,12 @@ export function createBatchUnlockBoughtEvent(
 
   batchUnlockBoughtEvent.parameters = new Array()
 
+  batchUnlockBoughtEvent.parameters.push(new ethereum.EventParam('caller', ethereum.Value.fromAddress(caller)))
+  batchUnlockBoughtEvent.parameters.push(new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount)))
+  batchUnlockBoughtEvent.parameters.push(new ethereum.EventParam('reward', ethereum.Value.fromUnsignedBigInt(reward)))
+  batchUnlockBoughtEvent.parameters.push(new ethereum.EventParam('lpFees', ethereum.Value.fromUnsignedBigInt(lpFees)))
   batchUnlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("caller", ethereum.Value.fromAddress(caller))
-  )
-  batchUnlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  batchUnlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("reward", ethereum.Value.fromUnsignedBigInt(reward))
-  )
-  batchUnlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("lpFees", ethereum.Value.fromUnsignedBigInt(lpFees))
-  )
-  batchUnlockBoughtEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenIds",
-      ethereum.Value.fromUnsignedBigIntArray(tokenIds)
-    )
+    new ethereum.EventParam('tokenIds', ethereum.Value.fromUnsignedBigIntArray(tokenIds))
   )
 
   return batchUnlockBoughtEvent
@@ -59,75 +48,42 @@ export function createBatchUnlockRedeemedEvent(
 
   batchUnlockRedeemedEvent.parameters = new Array()
 
+  batchUnlockRedeemedEvent.parameters.push(new ethereum.EventParam('relayer', ethereum.Value.fromAddress(relayer)))
+  batchUnlockRedeemedEvent.parameters.push(new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount)))
+  batchUnlockRedeemedEvent.parameters.push(new ethereum.EventParam('reward', ethereum.Value.fromUnsignedBigInt(reward)))
+  batchUnlockRedeemedEvent.parameters.push(new ethereum.EventParam('lpFees', ethereum.Value.fromUnsignedBigInt(lpFees)))
   batchUnlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("relayer", ethereum.Value.fromAddress(relayer))
-  )
-  batchUnlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  batchUnlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("reward", ethereum.Value.fromUnsignedBigInt(reward))
-  )
-  batchUnlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("lpFees", ethereum.Value.fromUnsignedBigInt(lpFees))
-  )
-  batchUnlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenIds",
-      ethereum.Value.fromUnsignedBigIntArray(tokenIds)
-    )
+    new ethereum.EventParam('tokenIds', ethereum.Value.fromUnsignedBigIntArray(tokenIds))
   )
 
   return batchUnlockRedeemedEvent
 }
 
-export function createClaimWithdrawRequestEvent(
-  requestId: BigInt,
-  to: Address,
-  amount: BigInt
-): ClaimWithdrawRequest {
-  let claimWithdrawRequestEvent = changetype<ClaimWithdrawRequest>(
-    newMockEvent()
-  )
+export function createClaimWithdrawRequestEvent(requestId: BigInt, to: Address, amount: BigInt): ClaimWithdrawRequest {
+  let claimWithdrawRequestEvent = changetype<ClaimWithdrawRequest>(newMockEvent())
 
   claimWithdrawRequestEvent.parameters = new Array()
 
   claimWithdrawRequestEvent.parameters.push(
-    new ethereum.EventParam(
-      "requestId",
-      ethereum.Value.fromUnsignedBigInt(requestId)
-    )
+    new ethereum.EventParam('requestId', ethereum.Value.fromUnsignedBigInt(requestId))
   )
+  claimWithdrawRequestEvent.parameters.push(new ethereum.EventParam('to', ethereum.Value.fromAddress(to)))
   claimWithdrawRequestEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
-  )
-  claimWithdrawRequestEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
+    new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount))
   )
 
   return claimWithdrawRequestEvent
 }
 
-export function createDepositEvent(
-  from: Address,
-  amount: BigInt,
-  lpSharesMinted: BigInt
-): Deposit {
+export function createDepositEvent(from: Address, amount: BigInt, lpSharesMinted: BigInt): Deposit {
   let depositEvent = changetype<Deposit>(newMockEvent())
 
   depositEvent.parameters = new Array()
 
+  depositEvent.parameters.push(new ethereum.EventParam('from', ethereum.Value.fromAddress(from)))
+  depositEvent.parameters.push(new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount)))
   depositEvent.parameters.push(
-    new ethereum.EventParam("from", ethereum.Value.fromAddress(from))
-  )
-  depositEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  depositEvent.parameters.push(
-    new ethereum.EventParam(
-      "lpSharesMinted",
-      ethereum.Value.fromUnsignedBigInt(lpSharesMinted)
-    )
+    new ethereum.EventParam('lpSharesMinted', ethereum.Value.fromUnsignedBigInt(lpSharesMinted))
   )
 
   return depositEvent
@@ -138,57 +94,32 @@ export function createInitializedEvent(version: BigInt): Initialized {
 
   initializedEvent.parameters = new Array()
 
-  initializedEvent.parameters.push(
-    new ethereum.EventParam(
-      "version",
-      ethereum.Value.fromUnsignedBigInt(version)
-    )
-  )
+  initializedEvent.parameters.push(new ethereum.EventParam('version', ethereum.Value.fromUnsignedBigInt(version)))
 
   return initializedEvent
 }
 
-export function createOwnershipTransferredEvent(
-  previousOwner: Address,
-  newOwner: Address
-): OwnershipTransferred {
-  let ownershipTransferredEvent = changetype<OwnershipTransferred>(
-    newMockEvent()
-  )
+export function createOwnershipTransferredEvent(previousOwner: Address, newOwner: Address): OwnershipTransferred {
+  let ownershipTransferredEvent = changetype<OwnershipTransferred>(newMockEvent())
 
   ownershipTransferredEvent.parameters = new Array()
 
   ownershipTransferredEvent.parameters.push(
-    new ethereum.EventParam(
-      "previousOwner",
-      ethereum.Value.fromAddress(previousOwner)
-    )
+    new ethereum.EventParam('previousOwner', ethereum.Value.fromAddress(previousOwner))
   )
-  ownershipTransferredEvent.parameters.push(
-    new ethereum.EventParam("newOwner", ethereum.Value.fromAddress(newOwner))
-  )
+  ownershipTransferredEvent.parameters.push(new ethereum.EventParam('newOwner', ethereum.Value.fromAddress(newOwner)))
 
   return ownershipTransferredEvent
 }
 
-export function createRelayerRewardsClaimedEvent(
-  relayer: Address,
-  rewards: BigInt
-): RelayerRewardsClaimed {
-  let relayerRewardsClaimedEvent = changetype<RelayerRewardsClaimed>(
-    newMockEvent()
-  )
+export function createRelayerRewardsClaimedEvent(relayer: Address, rewards: BigInt): RelayerRewardsClaimed {
+  let relayerRewardsClaimedEvent = changetype<RelayerRewardsClaimed>(newMockEvent())
 
   relayerRewardsClaimedEvent.parameters = new Array()
 
+  relayerRewardsClaimedEvent.parameters.push(new ethereum.EventParam('relayer', ethereum.Value.fromAddress(relayer)))
   relayerRewardsClaimedEvent.parameters.push(
-    new ethereum.EventParam("relayer", ethereum.Value.fromAddress(relayer))
-  )
-  relayerRewardsClaimedEvent.parameters.push(
-    new ethereum.EventParam(
-      "rewards",
-      ethereum.Value.fromUnsignedBigInt(rewards)
-    )
+    new ethereum.EventParam('rewards', ethereum.Value.fromUnsignedBigInt(rewards))
   )
 
   return relayerRewardsClaimedEvent
@@ -205,27 +136,11 @@ export function createSwapEvent(
 
   swapEvent.parameters = new Array()
 
-  swapEvent.parameters.push(
-    new ethereum.EventParam("caller", ethereum.Value.fromAddress(caller))
-  )
-  swapEvent.parameters.push(
-    new ethereum.EventParam("asset", ethereum.Value.fromAddress(asset))
-  )
-  swapEvent.parameters.push(
-    new ethereum.EventParam(
-      "amountIn",
-      ethereum.Value.fromUnsignedBigInt(amountIn)
-    )
-  )
-  swapEvent.parameters.push(
-    new ethereum.EventParam("fee", ethereum.Value.fromUnsignedBigInt(fee))
-  )
-  swapEvent.parameters.push(
-    new ethereum.EventParam(
-      "unlockId",
-      ethereum.Value.fromUnsignedBigInt(unlockId)
-    )
-  )
+  swapEvent.parameters.push(new ethereum.EventParam('caller', ethereum.Value.fromAddress(caller)))
+  swapEvent.parameters.push(new ethereum.EventParam('asset', ethereum.Value.fromAddress(asset)))
+  swapEvent.parameters.push(new ethereum.EventParam('amountIn', ethereum.Value.fromUnsignedBigInt(amountIn)))
+  swapEvent.parameters.push(new ethereum.EventParam('fee', ethereum.Value.fromUnsignedBigInt(fee)))
+  swapEvent.parameters.push(new ethereum.EventParam('unlockId', ethereum.Value.fromUnsignedBigInt(unlockId)))
 
   return swapEvent
 }
@@ -241,24 +156,11 @@ export function createUnlockBoughtEvent(
 
   unlockBoughtEvent.parameters = new Array()
 
-  unlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("caller", ethereum.Value.fromAddress(caller))
-  )
-  unlockBoughtEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
-  unlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  unlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("reward", ethereum.Value.fromUnsignedBigInt(reward))
-  )
-  unlockBoughtEvent.parameters.push(
-    new ethereum.EventParam("lpFees", ethereum.Value.fromUnsignedBigInt(lpFees))
-  )
+  unlockBoughtEvent.parameters.push(new ethereum.EventParam('caller', ethereum.Value.fromAddress(caller)))
+  unlockBoughtEvent.parameters.push(new ethereum.EventParam('tokenId', ethereum.Value.fromUnsignedBigInt(tokenId)))
+  unlockBoughtEvent.parameters.push(new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount)))
+  unlockBoughtEvent.parameters.push(new ethereum.EventParam('reward', ethereum.Value.fromUnsignedBigInt(reward)))
+  unlockBoughtEvent.parameters.push(new ethereum.EventParam('lpFees', ethereum.Value.fromUnsignedBigInt(lpFees)))
 
   return unlockBoughtEvent
 }
@@ -274,24 +176,11 @@ export function createUnlockRedeemedEvent(
 
   unlockRedeemedEvent.parameters = new Array()
 
-  unlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("relayer", ethereum.Value.fromAddress(relayer))
-  )
-  unlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam(
-      "tokenId",
-      ethereum.Value.fromUnsignedBigInt(tokenId)
-    )
-  )
-  unlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  unlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("reward", ethereum.Value.fromUnsignedBigInt(reward))
-  )
-  unlockRedeemedEvent.parameters.push(
-    new ethereum.EventParam("lpFees", ethereum.Value.fromUnsignedBigInt(lpFees))
-  )
+  unlockRedeemedEvent.parameters.push(new ethereum.EventParam('relayer', ethereum.Value.fromAddress(relayer)))
+  unlockRedeemedEvent.parameters.push(new ethereum.EventParam('tokenId', ethereum.Value.fromUnsignedBigInt(tokenId)))
+  unlockRedeemedEvent.parameters.push(new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount)))
+  unlockRedeemedEvent.parameters.push(new ethereum.EventParam('reward', ethereum.Value.fromUnsignedBigInt(reward)))
+  unlockRedeemedEvent.parameters.push(new ethereum.EventParam('lpFees', ethereum.Value.fromUnsignedBigInt(lpFees)))
 
   return unlockRedeemedEvent
 }
@@ -301,44 +190,22 @@ export function createUpgradedEvent(implementation: Address): Upgraded {
 
   upgradedEvent.parameters = new Array()
 
-  upgradedEvent.parameters.push(
-    new ethereum.EventParam(
-      "implementation",
-      ethereum.Value.fromAddress(implementation)
-    )
-  )
+  upgradedEvent.parameters.push(new ethereum.EventParam('implementation', ethereum.Value.fromAddress(implementation)))
 
   return upgradedEvent
 }
 
-export function createWithdrawEvent(
-  to: Address,
-  amount: BigInt,
-  lpSharesBurnt: BigInt,
-  requestId: BigInt
-): Withdraw {
+export function createWithdrawEvent(to: Address, amount: BigInt, lpSharesBurnt: BigInt, requestId: BigInt): Withdraw {
   let withdrawEvent = changetype<Withdraw>(newMockEvent())
 
   withdrawEvent.parameters = new Array()
 
+  withdrawEvent.parameters.push(new ethereum.EventParam('to', ethereum.Value.fromAddress(to)))
+  withdrawEvent.parameters.push(new ethereum.EventParam('amount', ethereum.Value.fromUnsignedBigInt(amount)))
   withdrawEvent.parameters.push(
-    new ethereum.EventParam("to", ethereum.Value.fromAddress(to))
+    new ethereum.EventParam('lpSharesBurnt', ethereum.Value.fromUnsignedBigInt(lpSharesBurnt))
   )
-  withdrawEvent.parameters.push(
-    new ethereum.EventParam("amount", ethereum.Value.fromUnsignedBigInt(amount))
-  )
-  withdrawEvent.parameters.push(
-    new ethereum.EventParam(
-      "lpSharesBurnt",
-      ethereum.Value.fromUnsignedBigInt(lpSharesBurnt)
-    )
-  )
-  withdrawEvent.parameters.push(
-    new ethereum.EventParam(
-      "requestId",
-      ethereum.Value.fromUnsignedBigInt(requestId)
-    )
-  )
+  withdrawEvent.parameters.push(new ethereum.EventParam('requestId', ethereum.Value.fromUnsignedBigInt(requestId)))
 
   return withdrawEvent
 }
