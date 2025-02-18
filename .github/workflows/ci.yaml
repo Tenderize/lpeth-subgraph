@@ -35,10 +35,6 @@ jobs:
         run: bun run prettier:check
         working-directory: packages/subgraph
 
-      - name: Run subgraph prepare:mainnet
-        run: bun run prepare:mainnet
-        working-directory: packages/subgraph
-
       - name: Run subgraph codegen
         run: bun run codegen
         working-directory: packages/subgraph
