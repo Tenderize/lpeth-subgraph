@@ -1,15 +1,23 @@
 // @ts-nocheck
 import { GraphQLResolveInfo, SelectionSetNode, FieldNode, GraphQLScalarType, GraphQLScalarTypeConfig } from 'graphql';
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
-import { gql } from '@graphql-mesh/utils';
+import type { GetMeshOptions } from '@graphql-mesh/runtime';
+import type { YamlConfig } from '@graphql-mesh/types';
+import { PubSub } from '@graphql-mesh/utils';
+import { DefaultLogger } from '@graphql-mesh/utils';
+import MeshCache from "@graphql-mesh/cache-localforage";
+import { fetch as fetchFn } from '@whatwg-node/fetch';
 
-import { findAndParseConfig } from '@graphql-mesh/cli';
+import { MeshResolvedSource } from '@graphql-mesh/runtime';
+import { MeshTransform, MeshPlugin } from '@graphql-mesh/types';
+import GraphqlHandler from "@graphql-mesh/graphql"
+import BareMerger from "@graphql-mesh/merger-bare";
 import { createMeshHTTPHandler, MeshHTTPHandler } from '@graphql-mesh/http';
 import { getMesh, ExecuteMeshFn, SubscribeMeshFn, MeshContext as BaseMeshContext, MeshInstance } from '@graphql-mesh/runtime';
 import { MeshStore, FsStoreStorageAdapter } from '@graphql-mesh/store';
 import { path as pathModule } from '@graphql-mesh/cross-helpers';
 import { ImportFn } from '@graphql-mesh/types';
 import type { LpEthTypes } from './sources/lpEth/types';
+import * as importedModule$0 from "./sources/lpEth/introspectionSchema";
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -545,6 +553,118 @@ export type OrderDirection =
   | 'asc'
   | 'desc';
 
+export type PreLaunch = {
+  id: Scalars['ID']['output'];
+  amount: Scalars['BigInt']['output'];
+  weightedAmount: Scalars['BigInt']['output'];
+};
+
+export type PreLaunchPosition = {
+  id: Scalars['ID']['output'];
+  account: Scalars['Bytes']['output'];
+  amount: Scalars['BigInt']['output'];
+  weightedAmount: Scalars['BigInt']['output'];
+  duration: Scalars['BigInt']['output'];
+  claimed: Scalars['Boolean']['output'];
+};
+
+export type PreLaunchPosition_filter = {
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  amount?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  duration?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_not?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  duration_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  claimed?: InputMaybe<Scalars['Boolean']['input']>;
+  claimed_not?: InputMaybe<Scalars['Boolean']['input']>;
+  claimed_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  claimed_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<PreLaunchPosition_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PreLaunchPosition_filter>>>;
+};
+
+export type PreLaunchPosition_orderBy =
+  | 'id'
+  | 'account'
+  | 'amount'
+  | 'weightedAmount'
+  | 'duration'
+  | 'claimed';
+
+export type PreLaunch_filter = {
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  amount?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<PreLaunch_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PreLaunch_filter>>>;
+};
+
+export type PreLaunch_orderBy =
+  | 'id'
+  | 'amount'
+  | 'weightedAmount';
+
 export type Query = {
   batchUnlockBought?: Maybe<BatchUnlockBought>;
   batchUnlockBoughts: Array<BatchUnlockBought>;
@@ -568,12 +688,16 @@ export type Query = {
   unlockRedeemeds: Array<UnlockRedeemed>;
   withdraw?: Maybe<Withdraw>;
   withdraws: Array<Withdraw>;
-  swapLPTokenTransfer?: Maybe<SwapLPTokenTransfer>;
-  swapLPTokenTransfers: Array<SwapLPTokenTransfer>;
+  swapLPTokenTransferEvent?: Maybe<SwapLPTokenTransferEvent>;
+  swapLPTokenTransferEvents: Array<SwapLPTokenTransferEvent>;
   user?: Maybe<User>;
   users: Array<User>;
   liquidityPosition?: Maybe<LiquidityPosition>;
   liquidityPositions: Array<LiquidityPosition>;
+  preLaunchPosition?: Maybe<PreLaunchPosition>;
+  preLaunchPositions: Array<PreLaunchPosition>;
+  preLaunch?: Maybe<PreLaunch>;
+  preLaunches: Array<PreLaunch>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -777,19 +901,19 @@ export type QuerywithdrawsArgs = {
 };
 
 
-export type QueryswapLPTokenTransferArgs = {
+export type QueryswapLPTokenTransferEventArgs = {
   id: Scalars['ID']['input'];
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
 
-export type QueryswapLPTokenTransfersArgs = {
+export type QueryswapLPTokenTransferEventsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SwapLPTokenTransfer_orderBy>;
+  orderBy?: InputMaybe<SwapLPTokenTransferEvent_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
-  where?: InputMaybe<SwapLPTokenTransfer_filter>;
+  where?: InputMaybe<SwapLPTokenTransferEvent_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -826,6 +950,42 @@ export type QueryliquidityPositionsArgs = {
   orderBy?: InputMaybe<LiquidityPosition_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   where?: InputMaybe<LiquidityPosition_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchPositionArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchPositionsArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunchPosition_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunchPosition_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchesArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunch_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunch_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -936,12 +1096,16 @@ export type Subscription = {
   unlockRedeemeds: Array<UnlockRedeemed>;
   withdraw?: Maybe<Withdraw>;
   withdraws: Array<Withdraw>;
-  swapLPTokenTransfer?: Maybe<SwapLPTokenTransfer>;
-  swapLPTokenTransfers: Array<SwapLPTokenTransfer>;
+  swapLPTokenTransferEvent?: Maybe<SwapLPTokenTransferEvent>;
+  swapLPTokenTransferEvents: Array<SwapLPTokenTransferEvent>;
   user?: Maybe<User>;
   users: Array<User>;
   liquidityPosition?: Maybe<LiquidityPosition>;
   liquidityPositions: Array<LiquidityPosition>;
+  preLaunchPosition?: Maybe<PreLaunchPosition>;
+  preLaunchPositions: Array<PreLaunchPosition>;
+  preLaunch?: Maybe<PreLaunch>;
+  preLaunches: Array<PreLaunch>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -1145,19 +1309,19 @@ export type SubscriptionwithdrawsArgs = {
 };
 
 
-export type SubscriptionswapLPTokenTransferArgs = {
+export type SubscriptionswapLPTokenTransferEventArgs = {
   id: Scalars['ID']['input'];
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
 
-export type SubscriptionswapLPTokenTransfersArgs = {
+export type SubscriptionswapLPTokenTransferEventsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SwapLPTokenTransfer_orderBy>;
+  orderBy?: InputMaybe<SwapLPTokenTransferEvent_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
-  where?: InputMaybe<SwapLPTokenTransfer_filter>;
+  where?: InputMaybe<SwapLPTokenTransferEvent_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -1199,6 +1363,42 @@ export type SubscriptionliquidityPositionsArgs = {
 };
 
 
+export type SubscriptionpreLaunchPositionArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptionpreLaunchPositionsArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunchPosition_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunchPosition_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptionpreLaunchArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptionpreLaunchesArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunch_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunch_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
 export type Subscription_metaArgs = {
   block?: InputMaybe<Block_height>;
 };
@@ -1217,7 +1417,7 @@ export type Swap = {
   transactionHash: Scalars['Bytes']['output'];
 };
 
-export type SwapLPTokenTransfer = {
+export type SwapLPTokenTransferEvent = {
   id: Scalars['ID']['output'];
   timestamp: Scalars['Int']['output'];
   blockNumber: Scalars['BigInt']['output'];
@@ -1227,7 +1427,7 @@ export type SwapLPTokenTransfer = {
   SwapPool: SwapPool;
 };
 
-export type SwapLPTokenTransfer_filter = {
+export type SwapLPTokenTransferEvent_filter = {
   id?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
@@ -1323,11 +1523,11 @@ export type SwapLPTokenTransfer_filter = {
   SwapPool_?: InputMaybe<SwapPool_filter>;
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SwapLPTokenTransfer_filter>>>;
-  or?: InputMaybe<Array<InputMaybe<SwapLPTokenTransfer_filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SwapLPTokenTransferEvent_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SwapLPTokenTransferEvent_filter>>>;
 };
 
-export type SwapLPTokenTransfer_orderBy =
+export type SwapLPTokenTransferEvent_orderBy =
   | 'id'
   | 'timestamp'
   | 'blockNumber'
@@ -2330,6 +2530,12 @@ export type ResolversTypes = ResolversObject<{
   LiquidityPosition_filter: LiquidityPosition_filter;
   LiquidityPosition_orderBy: LiquidityPosition_orderBy;
   OrderDirection: OrderDirection;
+  PreLaunch: ResolverTypeWrapper<PreLaunch>;
+  PreLaunchPosition: ResolverTypeWrapper<PreLaunchPosition>;
+  PreLaunchPosition_filter: PreLaunchPosition_filter;
+  PreLaunchPosition_orderBy: PreLaunchPosition_orderBy;
+  PreLaunch_filter: PreLaunch_filter;
+  PreLaunch_orderBy: PreLaunch_orderBy;
   Query: ResolverTypeWrapper<{}>;
   RelayerRewardsClaimed: ResolverTypeWrapper<RelayerRewardsClaimed>;
   RelayerRewardsClaimed_filter: RelayerRewardsClaimed_filter;
@@ -2337,9 +2543,9 @@ export type ResolversTypes = ResolversObject<{
   String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
   Swap: ResolverTypeWrapper<Swap>;
-  SwapLPTokenTransfer: ResolverTypeWrapper<SwapLPTokenTransfer>;
-  SwapLPTokenTransfer_filter: SwapLPTokenTransfer_filter;
-  SwapLPTokenTransfer_orderBy: SwapLPTokenTransfer_orderBy;
+  SwapLPTokenTransferEvent: ResolverTypeWrapper<SwapLPTokenTransferEvent>;
+  SwapLPTokenTransferEvent_filter: SwapLPTokenTransferEvent_filter;
+  SwapLPTokenTransferEvent_orderBy: SwapLPTokenTransferEvent_orderBy;
   SwapPool: ResolverTypeWrapper<SwapPool>;
   SwapPoolDay: ResolverTypeWrapper<SwapPoolDay>;
   SwapPoolDay_filter: SwapPoolDay_filter;
@@ -2388,14 +2594,18 @@ export type ResolversParentTypes = ResolversObject<{
   Int8: Scalars['Int8']['output'];
   LiquidityPosition: LiquidityPosition;
   LiquidityPosition_filter: LiquidityPosition_filter;
+  PreLaunch: PreLaunch;
+  PreLaunchPosition: PreLaunchPosition;
+  PreLaunchPosition_filter: PreLaunchPosition_filter;
+  PreLaunch_filter: PreLaunch_filter;
   Query: {};
   RelayerRewardsClaimed: RelayerRewardsClaimed;
   RelayerRewardsClaimed_filter: RelayerRewardsClaimed_filter;
   String: Scalars['String']['output'];
   Subscription: {};
   Swap: Swap;
-  SwapLPTokenTransfer: SwapLPTokenTransfer;
-  SwapLPTokenTransfer_filter: SwapLPTokenTransfer_filter;
+  SwapLPTokenTransferEvent: SwapLPTokenTransferEvent;
+  SwapLPTokenTransferEvent_filter: SwapLPTokenTransferEvent_filter;
   SwapPool: SwapPool;
   SwapPoolDay: SwapPoolDay;
   SwapPoolDay_filter: SwapPoolDay_filter;
@@ -2503,6 +2713,23 @@ export type LiquidityPositionResolvers<ContextType = MeshContext, ParentType ext
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type PreLaunchResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['PreLaunch'] = ResolversParentTypes['PreLaunch']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  amount?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  weightedAmount?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type PreLaunchPositionResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['PreLaunchPosition'] = ResolversParentTypes['PreLaunchPosition']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  account?: Resolver<ResolversTypes['Bytes'], ParentType, ContextType>;
+  amount?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  weightedAmount?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  duration?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
+  claimed?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type QueryResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   batchUnlockBought?: Resolver<Maybe<ResolversTypes['BatchUnlockBought']>, ParentType, ContextType, RequireFields<QuerybatchUnlockBoughtArgs, 'id' | 'subgraphError'>>;
   batchUnlockBoughts?: Resolver<Array<ResolversTypes['BatchUnlockBought']>, ParentType, ContextType, RequireFields<QuerybatchUnlockBoughtsArgs, 'skip' | 'first' | 'subgraphError'>>;
@@ -2526,12 +2753,16 @@ export type QueryResolvers<ContextType = MeshContext, ParentType extends Resolve
   unlockRedeemeds?: Resolver<Array<ResolversTypes['UnlockRedeemed']>, ParentType, ContextType, RequireFields<QueryunlockRedeemedsArgs, 'skip' | 'first' | 'subgraphError'>>;
   withdraw?: Resolver<Maybe<ResolversTypes['Withdraw']>, ParentType, ContextType, RequireFields<QuerywithdrawArgs, 'id' | 'subgraphError'>>;
   withdraws?: Resolver<Array<ResolversTypes['Withdraw']>, ParentType, ContextType, RequireFields<QuerywithdrawsArgs, 'skip' | 'first' | 'subgraphError'>>;
-  swapLPTokenTransfer?: Resolver<Maybe<ResolversTypes['SwapLPTokenTransfer']>, ParentType, ContextType, RequireFields<QueryswapLPTokenTransferArgs, 'id' | 'subgraphError'>>;
-  swapLPTokenTransfers?: Resolver<Array<ResolversTypes['SwapLPTokenTransfer']>, ParentType, ContextType, RequireFields<QueryswapLPTokenTransfersArgs, 'skip' | 'first' | 'subgraphError'>>;
+  swapLPTokenTransferEvent?: Resolver<Maybe<ResolversTypes['SwapLPTokenTransferEvent']>, ParentType, ContextType, RequireFields<QueryswapLPTokenTransferEventArgs, 'id' | 'subgraphError'>>;
+  swapLPTokenTransferEvents?: Resolver<Array<ResolversTypes['SwapLPTokenTransferEvent']>, ParentType, ContextType, RequireFields<QueryswapLPTokenTransferEventsArgs, 'skip' | 'first' | 'subgraphError'>>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryuserArgs, 'id' | 'subgraphError'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryusersArgs, 'skip' | 'first' | 'subgraphError'>>;
   liquidityPosition?: Resolver<Maybe<ResolversTypes['LiquidityPosition']>, ParentType, ContextType, RequireFields<QueryliquidityPositionArgs, 'id' | 'subgraphError'>>;
   liquidityPositions?: Resolver<Array<ResolversTypes['LiquidityPosition']>, ParentType, ContextType, RequireFields<QueryliquidityPositionsArgs, 'skip' | 'first' | 'subgraphError'>>;
+  preLaunchPosition?: Resolver<Maybe<ResolversTypes['PreLaunchPosition']>, ParentType, ContextType, RequireFields<QuerypreLaunchPositionArgs, 'id' | 'subgraphError'>>;
+  preLaunchPositions?: Resolver<Array<ResolversTypes['PreLaunchPosition']>, ParentType, ContextType, RequireFields<QuerypreLaunchPositionsArgs, 'skip' | 'first' | 'subgraphError'>>;
+  preLaunch?: Resolver<Maybe<ResolversTypes['PreLaunch']>, ParentType, ContextType, RequireFields<QuerypreLaunchArgs, 'id' | 'subgraphError'>>;
+  preLaunches?: Resolver<Array<ResolversTypes['PreLaunch']>, ParentType, ContextType, RequireFields<QuerypreLaunchesArgs, 'skip' | 'first' | 'subgraphError'>>;
   _meta?: Resolver<Maybe<ResolversTypes['_Meta_']>, ParentType, ContextType, Partial<Query_metaArgs>>;
 }>;
 
@@ -2568,12 +2799,16 @@ export type SubscriptionResolvers<ContextType = MeshContext, ParentType extends 
   unlockRedeemeds?: SubscriptionResolver<Array<ResolversTypes['UnlockRedeemed']>, "unlockRedeemeds", ParentType, ContextType, RequireFields<SubscriptionunlockRedeemedsArgs, 'skip' | 'first' | 'subgraphError'>>;
   withdraw?: SubscriptionResolver<Maybe<ResolversTypes['Withdraw']>, "withdraw", ParentType, ContextType, RequireFields<SubscriptionwithdrawArgs, 'id' | 'subgraphError'>>;
   withdraws?: SubscriptionResolver<Array<ResolversTypes['Withdraw']>, "withdraws", ParentType, ContextType, RequireFields<SubscriptionwithdrawsArgs, 'skip' | 'first' | 'subgraphError'>>;
-  swapLPTokenTransfer?: SubscriptionResolver<Maybe<ResolversTypes['SwapLPTokenTransfer']>, "swapLPTokenTransfer", ParentType, ContextType, RequireFields<SubscriptionswapLPTokenTransferArgs, 'id' | 'subgraphError'>>;
-  swapLPTokenTransfers?: SubscriptionResolver<Array<ResolversTypes['SwapLPTokenTransfer']>, "swapLPTokenTransfers", ParentType, ContextType, RequireFields<SubscriptionswapLPTokenTransfersArgs, 'skip' | 'first' | 'subgraphError'>>;
+  swapLPTokenTransferEvent?: SubscriptionResolver<Maybe<ResolversTypes['SwapLPTokenTransferEvent']>, "swapLPTokenTransferEvent", ParentType, ContextType, RequireFields<SubscriptionswapLPTokenTransferEventArgs, 'id' | 'subgraphError'>>;
+  swapLPTokenTransferEvents?: SubscriptionResolver<Array<ResolversTypes['SwapLPTokenTransferEvent']>, "swapLPTokenTransferEvents", ParentType, ContextType, RequireFields<SubscriptionswapLPTokenTransferEventsArgs, 'skip' | 'first' | 'subgraphError'>>;
   user?: SubscriptionResolver<Maybe<ResolversTypes['User']>, "user", ParentType, ContextType, RequireFields<SubscriptionuserArgs, 'id' | 'subgraphError'>>;
   users?: SubscriptionResolver<Array<ResolversTypes['User']>, "users", ParentType, ContextType, RequireFields<SubscriptionusersArgs, 'skip' | 'first' | 'subgraphError'>>;
   liquidityPosition?: SubscriptionResolver<Maybe<ResolversTypes['LiquidityPosition']>, "liquidityPosition", ParentType, ContextType, RequireFields<SubscriptionliquidityPositionArgs, 'id' | 'subgraphError'>>;
   liquidityPositions?: SubscriptionResolver<Array<ResolversTypes['LiquidityPosition']>, "liquidityPositions", ParentType, ContextType, RequireFields<SubscriptionliquidityPositionsArgs, 'skip' | 'first' | 'subgraphError'>>;
+  preLaunchPosition?: SubscriptionResolver<Maybe<ResolversTypes['PreLaunchPosition']>, "preLaunchPosition", ParentType, ContextType, RequireFields<SubscriptionpreLaunchPositionArgs, 'id' | 'subgraphError'>>;
+  preLaunchPositions?: SubscriptionResolver<Array<ResolversTypes['PreLaunchPosition']>, "preLaunchPositions", ParentType, ContextType, RequireFields<SubscriptionpreLaunchPositionsArgs, 'skip' | 'first' | 'subgraphError'>>;
+  preLaunch?: SubscriptionResolver<Maybe<ResolversTypes['PreLaunch']>, "preLaunch", ParentType, ContextType, RequireFields<SubscriptionpreLaunchArgs, 'id' | 'subgraphError'>>;
+  preLaunches?: SubscriptionResolver<Array<ResolversTypes['PreLaunch']>, "preLaunches", ParentType, ContextType, RequireFields<SubscriptionpreLaunchesArgs, 'skip' | 'first' | 'subgraphError'>>;
   _meta?: SubscriptionResolver<Maybe<ResolversTypes['_Meta_']>, "_meta", ParentType, ContextType, Partial<Subscription_metaArgs>>;
 }>;
 
@@ -2592,7 +2827,7 @@ export type SwapResolvers<ContextType = MeshContext, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type SwapLPTokenTransferResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['SwapLPTokenTransfer'] = ResolversParentTypes['SwapLPTokenTransfer']> = ResolversObject<{
+export type SwapLPTokenTransferEventResolvers<ContextType = MeshContext, ParentType extends ResolversParentTypes['SwapLPTokenTransferEvent'] = ResolversParentTypes['SwapLPTokenTransferEvent']> = ResolversObject<{
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   timestamp?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   blockNumber?: Resolver<ResolversTypes['BigInt'], ParentType, ContextType>;
@@ -2713,11 +2948,13 @@ export type Resolvers<ContextType = MeshContext> = ResolversObject<{
   Deposit?: DepositResolvers<ContextType>;
   Int8?: GraphQLScalarType;
   LiquidityPosition?: LiquidityPositionResolvers<ContextType>;
+  PreLaunch?: PreLaunchResolvers<ContextType>;
+  PreLaunchPosition?: PreLaunchPositionResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   RelayerRewardsClaimed?: RelayerRewardsClaimedResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   Swap?: SwapResolvers<ContextType>;
-  SwapLPTokenTransfer?: SwapLPTokenTransferResolvers<ContextType>;
+  SwapLPTokenTransferEvent?: SwapLPTokenTransferEventResolvers<ContextType>;
   SwapPool?: SwapPoolResolvers<ContextType>;
   SwapPoolDay?: SwapPoolDayResolvers<ContextType>;
   Timestamp?: GraphQLScalarType;
@@ -2738,12 +2975,14 @@ export type DirectiveResolvers<ContextType = MeshContext> = ResolversObject<{
 export type MeshContext = LpEthTypes.Context & BaseMeshContext;
 
 
-import { fileURLToPath } from '@graphql-mesh/utils';
-const baseDir = pathModule.join(pathModule.dirname(fileURLToPath(import.meta.url)), '..');
+const baseDir = pathModule.join(typeof __dirname === 'string' ? __dirname : '/', '..');
 
 const importFn: ImportFn = <T>(moduleId: string) => {
   const relativeModuleId = (pathModule.isAbsolute(moduleId) ? pathModule.relative(baseDir, moduleId) : moduleId).split('\\').join('/').replace(baseDir + '/', '');
   switch(relativeModuleId) {
+    case ".graphclient/sources/lpEth/introspectionSchema":
+      return Promise.resolve(importedModule$0) as T;
+    
     default:
       return Promise.reject(new Error(`Cannot find module '${relativeModuleId}'.`));
   }
@@ -2758,15 +2997,64 @@ const rootStore = new MeshStore('.graphclient', new FsStoreStorageAdapter({
   validate: false
 });
 
-export function getMeshOptions() {
-  console.warn('WARNING: These artifacts are built for development mode. Please run "graphclient build" to build production artifacts');
-  return findAndParseConfig({
-    dir: baseDir,
-    artifactsDir: ".graphclient",
-    configName: "graphclient",
-    additionalPackagePrefixes: ["@graphprotocol/client-"],
-    initialLoggerPrefix: "GraphClient",
-  });
+export const rawServeConfig: YamlConfig.Config['serve'] = undefined as any
+export async function getMeshOptions(): Promise<GetMeshOptions> {
+const pubsub = new PubSub();
+const sourcesStore = rootStore.child('sources');
+const logger = new DefaultLogger("GraphClient");
+const cache = new (MeshCache as any)({
+      ...({} as any),
+      importFn,
+      store: rootStore.child('cache'),
+      pubsub,
+      logger,
+    } as any)
+
+const sources: MeshResolvedSource[] = [];
+const transforms: MeshTransform[] = [];
+const additionalEnvelopPlugins: MeshPlugin<any>[] = [];
+const lpEthTransforms = [];
+const additionalTypeDefs = [] as any[];
+const lpEthHandler = new GraphqlHandler({
+              name: "lpEth",
+              config: {"endpoint":"https://api.studio.thegraph.com/query/93675/lpeth/version/latest"},
+              baseDir,
+              cache,
+              pubsub,
+              store: sourcesStore.child("lpEth"),
+              logger: logger.child("lpEth"),
+              importFn,
+            });
+sources[0] = {
+          name: 'lpEth',
+          handler: lpEthHandler,
+          transforms: lpEthTransforms
+        }
+const additionalResolvers = [] as any[]
+const merger = new(BareMerger as any)({
+        cache,
+        pubsub,
+        logger: logger.child('bareMerger'),
+        store: rootStore.child('bareMerger')
+      })
+
+  return {
+    sources,
+    transforms,
+    additionalTypeDefs,
+    additionalResolvers,
+    cache,
+    pubsub,
+    merger,
+    logger,
+    additionalEnvelopPlugins,
+    get documents() {
+      return [
+      
+    ];
+    },
+    fetchFn,
+  };
 }
 
 export function createBuiltMeshHTTPHandler<TServerContext = {}>(): MeshHTTPHandler<TServerContext> {
@@ -2776,6 +3064,7 @@ export function createBuiltMeshHTTPHandler<TServerContext = {}>(): MeshHTTPHandl
     rawServeConfig: undefined,
   })
 }
+
 
 let meshInstance$: Promise<MeshInstance> | undefined;
 
@@ -2811,106 +3100,3 @@ export function getBuiltGraphClient(): Promise<MeshInstance> {
 export const execute: ExecuteMeshFn = (...args) => getBuiltGraphClient().then(({ execute }) => execute(...args));
 
 export const subscribe: SubscribeMeshFn = (...args) => getBuiltGraphClient().then(({ subscribe }) => subscribe(...args));
-export function getBuiltGraphSDK<TGlobalContext = any, TOperationContext = any>(globalContext?: TGlobalContext) {
-  const sdkRequester$ = getBuiltGraphClient().then(({ sdkRequesterFactory }) => sdkRequesterFactory(globalContext));
-  return getSdk<TOperationContext, TGlobalContext>((...args) => sdkRequester$.then(sdkRequester => sdkRequester(...args)));
-}
-export type getPoolsQueryVariables = Exact<{
-  dateFilter?: InputMaybe<Scalars['Int']['input']>;
-  first?: InputMaybe<Scalars['Int']['input']>;
-  skip?: InputMaybe<Scalars['Int']['input']>;
-}>;
-
-
-export type getPoolsQuery = { swapPools: Array<(
-    Pick<SwapPool, 'id' | 'lpToken' | 'liabilities' | 'totalSupply' | 'unlocking' | 'volume' | 'volumeUSD' | 'fees' | 'feesUSD' | 'lpRewards' | 'lpRewardsUSD'>
-    & { poolDays: Array<Pick<SwapPoolDay, 'date' | 'id' | 'liabilities' | 'totalSupply' | 'unlocking' | 'volume' | 'volumeUSD' | 'fees' | 'feesUSD' | 'lpRewards' | 'lpRewardsUSD'>> }
-  )> };
-
-export type getPoolQueryVariables = Exact<{
-  id: Scalars['ID']['input'];
-  dateFilter?: InputMaybe<Scalars['Int']['input']>;
-}>;
-
-
-export type getPoolQuery = { swapPool?: Maybe<(
-    Pick<SwapPool, 'id' | 'lpToken' | 'liabilities' | 'totalSupply' | 'unlocking' | 'volume' | 'volumeUSD' | 'fees' | 'feesUSD' | 'lpRewards' | 'lpRewardsUSD'>
-    & { poolDays: Array<Pick<SwapPoolDay, 'date' | 'id' | 'liabilities' | 'totalSupply' | 'unlocking' | 'volume' | 'volumeUSD' | 'fees' | 'feesUSD' | 'lpRewards' | 'lpRewardsUSD'>> }
-  )> };
-
-
-export const getPoolsDocument = gql`
-    query getPools($dateFilter: Int = 0, $first: Int = 1000, $skip: Int = 0) {
-  swapPools {
-    id
-    lpToken
-    liabilities
-    totalSupply
-    unlocking
-    volume
-    volumeUSD
-    fees
-    feesUSD
-    lpRewards
-    lpRewardsUSD
-    poolDays(where: {date_gte: $dateFilter}, orderBy: date, orderDirection: desc) {
-      date
-      id
-      liabilities
-      totalSupply
-      unlocking
-      volume
-      volumeUSD
-      fees
-      feesUSD
-      lpRewards
-      lpRewardsUSD
-    }
-  }
-}
-    ` as unknown as DocumentNode<getPoolsQuery, getPoolsQueryVariables>;
-export const getPoolDocument = gql`
-    query getPool($id: ID!, $dateFilter: Int = 0) {
-  swapPool(id: $id) {
-    id
-    lpToken
-    liabilities
-    totalSupply
-    unlocking
-    volume
-    volumeUSD
-    fees
-    feesUSD
-    lpRewards
-    lpRewardsUSD
-    poolDays(where: {date_gte: $dateFilter}, orderBy: date, orderDirection: desc) {
-      date
-      id
-      liabilities
-      totalSupply
-      unlocking
-      volume
-      volumeUSD
-      fees
-      feesUSD
-      lpRewards
-      lpRewardsUSD
-    }
-  }
-}
-    ` as unknown as DocumentNode<getPoolQuery, getPoolQueryVariables>;
-
-
-
-export type Requester<C = {}, E = unknown> = <R, V>(doc: DocumentNode, vars?: V, options?: C) => Promise<R> | AsyncIterable<R>
-export function getSdk<C, E>(requester: Requester<C, E>) {
-  return {
-    getPools(variables?: getPoolsQueryVariables, options?: C): Promise<getPoolsQuery> {
-      return requester<getPoolsQuery, getPoolsQueryVariables>(getPoolsDocument, variables, options) as Promise<getPoolsQuery>;
-    },
-    getPool(variables: getPoolQueryVariables, options?: C): Promise<getPoolQuery> {
-      return requester<getPoolQuery, getPoolQueryVariables>(getPoolDocument, variables, options) as Promise<getPoolQuery>;
-    }
-  };
-}
-export type Sdk = ReturnType<typeof getSdk>;
