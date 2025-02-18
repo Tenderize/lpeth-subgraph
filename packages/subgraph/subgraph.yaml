@@ -4,6 +4,35 @@ indexerHints:
 schema:
   file: ./schema.graphql
 dataSources:
+  - kind: ethereum/contract
+    name: PreLaunch
+    network: mainnet
+    source:
+      address: "0xcC73341a078761AB869D90030D6632F9ea139f2b"
+      abi: PreLaunch
+      startBlock: 20692554
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      entities:
+        - Deposit
+        - LiquidityPosition
+      abis:
+        - name: PreLaunch
+          file: ./abis/Prelaunch.json
+      callHandlers:
+        - function: depositETH(uint256)
+          handler: handleDepositETH
+        - function: depositWETH(uint256,uint256)
+          handler: handleDepositWETH
+        - function: withdraw(uint256)
+          handler: handleWithdraw
+        - function: claimVeTokens()
+          handler: handleClaim
+        - function: changeLockup(uint256)
+          handler: handleChangeLockup
+      file: ./src/mappings/prelaunch.ts
   - kind: ethereum
     name: lpeth
     network: mainnet

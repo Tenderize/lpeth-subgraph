@@ -1,0 +1,5 @@
+sources:
+  - name: Tenderize
+    handler:
+      graphql:
+        endpoint: "https://api.studio.thegraph.com/query/93675/tenderize-v2-arbitrum/version/latest"

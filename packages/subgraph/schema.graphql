@@ -139,14 +139,15 @@ type Withdraw @entity(immutable: true) {
   transactionHash: Bytes!
 }
 
-type SwapLPTokenTransfer @entity(immutable: true) {
+type SwapLPTokenTransferEvent @entity(immutable: true) {
   id: ID!
   timestamp: Int!
   blockNumber: BigInt!
 
   from: String!
   to: String!
-  amount: BigInt!
+  shares: BigInt!
+  value: BigInt!
 
   # Relational fields
   SwapPool: SwapPool!
@@ -163,4 +164,20 @@ type LiquidityPosition @entity {
   pool: SwapPool!
   shares: BigInt!
   netDeposits: BigInt!
+}
+
+type PreLaunchPosition @entity {
+  id: ID! # user address
+  account: Bytes! # user address
+  amount: BigInt!
+  weightedAmount: BigInt!
+  duration: BigInt!
+  claimed: Boolean!
+  claimedAt: BigInt
+}
+
+type PreLaunch @entity {
+  id: ID! # contract address
+  amount: BigInt!
+  weightedAmount: BigInt!
 }

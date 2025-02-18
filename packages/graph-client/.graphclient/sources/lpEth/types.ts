@@ -3,7 +3,7 @@
 import { InContextSdkMethod } from '@graphql-mesh/types';
 import { MeshContext } from '@graphql-mesh/runtime';
 
-export namespace TenderizeTypes {
+export namespace LpEthTypes {
   export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -535,6 +535,118 @@ export type OrderDirection =
   | 'asc'
   | 'desc';
 
+export type PreLaunch = {
+  id: Scalars['ID']['output'];
+  amount: Scalars['BigInt']['output'];
+  weightedAmount: Scalars['BigInt']['output'];
+};
+
+export type PreLaunchPosition = {
+  id: Scalars['ID']['output'];
+  account: Scalars['Bytes']['output'];
+  amount: Scalars['BigInt']['output'];
+  weightedAmount: Scalars['BigInt']['output'];
+  duration: Scalars['BigInt']['output'];
+  claimed: Scalars['Boolean']['output'];
+};
+
+export type PreLaunchPosition_filter = {
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  account?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lt?: InputMaybe<Scalars['Bytes']['input']>;
+  account_gte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_lte?: InputMaybe<Scalars['Bytes']['input']>;
+  account_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_not_in?: InputMaybe<Array<Scalars['Bytes']['input']>>;
+  account_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  account_not_contains?: InputMaybe<Scalars['Bytes']['input']>;
+  amount?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  duration?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_not?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  duration_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  duration_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  claimed?: InputMaybe<Scalars['Boolean']['input']>;
+  claimed_not?: InputMaybe<Scalars['Boolean']['input']>;
+  claimed_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  claimed_not_in?: InputMaybe<Array<Scalars['Boolean']['input']>>;
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<PreLaunchPosition_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PreLaunchPosition_filter>>>;
+};
+
+export type PreLaunchPosition_orderBy =
+  | 'id'
+  | 'account'
+  | 'amount'
+  | 'weightedAmount'
+  | 'duration'
+  | 'claimed';
+
+export type PreLaunch_filter = {
+  id?: InputMaybe<Scalars['ID']['input']>;
+  id_not?: InputMaybe<Scalars['ID']['input']>;
+  id_gt?: InputMaybe<Scalars['ID']['input']>;
+  id_lt?: InputMaybe<Scalars['ID']['input']>;
+  id_gte?: InputMaybe<Scalars['ID']['input']>;
+  id_lte?: InputMaybe<Scalars['ID']['input']>;
+  id_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  id_not_in?: InputMaybe<Array<Scalars['ID']['input']>>;
+  amount?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  amount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  amount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_not?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lt?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_gte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_lte?: InputMaybe<Scalars['BigInt']['input']>;
+  weightedAmount_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  weightedAmount_not_in?: InputMaybe<Array<Scalars['BigInt']['input']>>;
+  /** Filter for the block changed event. */
+  _change_block?: InputMaybe<BlockChangedFilter>;
+  and?: InputMaybe<Array<InputMaybe<PreLaunch_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<PreLaunch_filter>>>;
+};
+
+export type PreLaunch_orderBy =
+  | 'id'
+  | 'amount'
+  | 'weightedAmount';
+
 export type Query = {
   batchUnlockBought?: Maybe<BatchUnlockBought>;
   batchUnlockBoughts: Array<BatchUnlockBought>;
@@ -558,12 +670,16 @@ export type Query = {
   unlockRedeemeds: Array<UnlockRedeemed>;
   withdraw?: Maybe<Withdraw>;
   withdraws: Array<Withdraw>;
-  swapLPTokenTransfer?: Maybe<SwapLPTokenTransfer>;
-  swapLPTokenTransfers: Array<SwapLPTokenTransfer>;
+  swapLPTokenTransferEvent?: Maybe<SwapLPTokenTransferEvent>;
+  swapLPTokenTransferEvents: Array<SwapLPTokenTransferEvent>;
   user?: Maybe<User>;
   users: Array<User>;
   liquidityPosition?: Maybe<LiquidityPosition>;
   liquidityPositions: Array<LiquidityPosition>;
+  preLaunchPosition?: Maybe<PreLaunchPosition>;
+  preLaunchPositions: Array<PreLaunchPosition>;
+  preLaunch?: Maybe<PreLaunch>;
+  preLaunches: Array<PreLaunch>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -767,19 +883,19 @@ export type QuerywithdrawsArgs = {
 };
 
 
-export type QueryswapLPTokenTransferArgs = {
+export type QueryswapLPTokenTransferEventArgs = {
   id: Scalars['ID']['input'];
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
 
-export type QueryswapLPTokenTransfersArgs = {
+export type QueryswapLPTokenTransferEventsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SwapLPTokenTransfer_orderBy>;
+  orderBy?: InputMaybe<SwapLPTokenTransferEvent_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
-  where?: InputMaybe<SwapLPTokenTransfer_filter>;
+  where?: InputMaybe<SwapLPTokenTransferEvent_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -816,6 +932,42 @@ export type QueryliquidityPositionsArgs = {
   orderBy?: InputMaybe<LiquidityPosition_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
   where?: InputMaybe<LiquidityPosition_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchPositionArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchPositionsArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunchPosition_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunchPosition_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type QuerypreLaunchesArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunch_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunch_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -926,12 +1078,16 @@ export type Subscription = {
   unlockRedeemeds: Array<UnlockRedeemed>;
   withdraw?: Maybe<Withdraw>;
   withdraws: Array<Withdraw>;
-  swapLPTokenTransfer?: Maybe<SwapLPTokenTransfer>;
-  swapLPTokenTransfers: Array<SwapLPTokenTransfer>;
+  swapLPTokenTransferEvent?: Maybe<SwapLPTokenTransferEvent>;
+  swapLPTokenTransferEvents: Array<SwapLPTokenTransferEvent>;
   user?: Maybe<User>;
   users: Array<User>;
   liquidityPosition?: Maybe<LiquidityPosition>;
   liquidityPositions: Array<LiquidityPosition>;
+  preLaunchPosition?: Maybe<PreLaunchPosition>;
+  preLaunchPositions: Array<PreLaunchPosition>;
+  preLaunch?: Maybe<PreLaunch>;
+  preLaunches: Array<PreLaunch>;
   /** Access to subgraph metadata */
   _meta?: Maybe<_Meta_>;
 };
@@ -1135,19 +1291,19 @@ export type SubscriptionwithdrawsArgs = {
 };
 
 
-export type SubscriptionswapLPTokenTransferArgs = {
+export type SubscriptionswapLPTokenTransferEventArgs = {
   id: Scalars['ID']['input'];
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
 
 
-export type SubscriptionswapLPTokenTransfersArgs = {
+export type SubscriptionswapLPTokenTransferEventsArgs = {
   skip?: InputMaybe<Scalars['Int']['input']>;
   first?: InputMaybe<Scalars['Int']['input']>;
-  orderBy?: InputMaybe<SwapLPTokenTransfer_orderBy>;
+  orderBy?: InputMaybe<SwapLPTokenTransferEvent_orderBy>;
   orderDirection?: InputMaybe<OrderDirection>;
-  where?: InputMaybe<SwapLPTokenTransfer_filter>;
+  where?: InputMaybe<SwapLPTokenTransferEvent_filter>;
   block?: InputMaybe<Block_height>;
   subgraphError?: _SubgraphErrorPolicy_;
 };
@@ -1189,6 +1345,42 @@ export type SubscriptionliquidityPositionsArgs = {
 };
 
 
+export type SubscriptionpreLaunchPositionArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptionpreLaunchPositionsArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunchPosition_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunchPosition_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptionpreLaunchArgs = {
+  id: Scalars['ID']['input'];
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
+export type SubscriptionpreLaunchesArgs = {
+  skip?: InputMaybe<Scalars['Int']['input']>;
+  first?: InputMaybe<Scalars['Int']['input']>;
+  orderBy?: InputMaybe<PreLaunch_orderBy>;
+  orderDirection?: InputMaybe<OrderDirection>;
+  where?: InputMaybe<PreLaunch_filter>;
+  block?: InputMaybe<Block_height>;
+  subgraphError?: _SubgraphErrorPolicy_;
+};
+
+
 export type Subscription_metaArgs = {
   block?: InputMaybe<Block_height>;
 };
@@ -1207,7 +1399,7 @@ export type Swap = {
   transactionHash: Scalars['Bytes']['output'];
 };
 
-export type SwapLPTokenTransfer = {
+export type SwapLPTokenTransferEvent = {
   id: Scalars['ID']['output'];
   timestamp: Scalars['Int']['output'];
   blockNumber: Scalars['BigInt']['output'];
@@ -1217,7 +1409,7 @@ export type SwapLPTokenTransfer = {
   SwapPool: SwapPool;
 };
 
-export type SwapLPTokenTransfer_filter = {
+export type SwapLPTokenTransferEvent_filter = {
   id?: InputMaybe<Scalars['ID']['input']>;
   id_not?: InputMaybe<Scalars['ID']['input']>;
   id_gt?: InputMaybe<Scalars['ID']['input']>;
@@ -1313,11 +1505,11 @@ export type SwapLPTokenTransfer_filter = {
   SwapPool_?: InputMaybe<SwapPool_filter>;
   /** Filter for the block changed event. */
   _change_block?: InputMaybe<BlockChangedFilter>;
-  and?: InputMaybe<Array<InputMaybe<SwapLPTokenTransfer_filter>>>;
-  or?: InputMaybe<Array<InputMaybe<SwapLPTokenTransfer_filter>>>;
+  and?: InputMaybe<Array<InputMaybe<SwapLPTokenTransferEvent_filter>>>;
+  or?: InputMaybe<Array<InputMaybe<SwapLPTokenTransferEvent_filter>>>;
 };
 
-export type SwapLPTokenTransfer_orderBy =
+export type SwapLPTokenTransferEvent_orderBy =
   | 'id'
   | 'timestamp'
   | 'blockNumber'
@@ -2253,9 +2445,9 @@ export type _SubgraphErrorPolicy_ =
   /** null **/
   withdraws: InContextSdkMethod<Query['withdraws'], QuerywithdrawsArgs, MeshContext>,
   /** null **/
-  swapLPTokenTransfer: InContextSdkMethod<Query['swapLPTokenTransfer'], QueryswapLPTokenTransferArgs, MeshContext>,
+  swapLPTokenTransferEvent: InContextSdkMethod<Query['swapLPTokenTransferEvent'], QueryswapLPTokenTransferEventArgs, MeshContext>,
   /** null **/
-  swapLPTokenTransfers: InContextSdkMethod<Query['swapLPTokenTransfers'], QueryswapLPTokenTransfersArgs, MeshContext>,
+  swapLPTokenTransferEvents: InContextSdkMethod<Query['swapLPTokenTransferEvents'], QueryswapLPTokenTransferEventsArgs, MeshContext>,
   /** null **/
   user: InContextSdkMethod<Query['user'], QueryuserArgs, MeshContext>,
   /** null **/
@@ -2264,6 +2456,14 @@ export type _SubgraphErrorPolicy_ =
   liquidityPosition: InContextSdkMethod<Query['liquidityPosition'], QueryliquidityPositionArgs, MeshContext>,
   /** null **/
   liquidityPositions: InContextSdkMethod<Query['liquidityPositions'], QueryliquidityPositionsArgs, MeshContext>,
+  /** null **/
+  preLaunchPosition: InContextSdkMethod<Query['preLaunchPosition'], QuerypreLaunchPositionArgs, MeshContext>,
+  /** null **/
+  preLaunchPositions: InContextSdkMethod<Query['preLaunchPositions'], QuerypreLaunchPositionsArgs, MeshContext>,
+  /** null **/
+  preLaunch: InContextSdkMethod<Query['preLaunch'], QuerypreLaunchArgs, MeshContext>,
+  /** null **/
+  preLaunches: InContextSdkMethod<Query['preLaunches'], QuerypreLaunchesArgs, MeshContext>,
   /** Access to subgraph metadata **/
   _meta: InContextSdkMethod<Query['_meta'], Query_metaArgs, MeshContext>
   };
@@ -2318,9 +2518,9 @@ export type _SubgraphErrorPolicy_ =
   /** null **/
   withdraws: InContextSdkMethod<Subscription['withdraws'], SubscriptionwithdrawsArgs, MeshContext>,
   /** null **/
-  swapLPTokenTransfer: InContextSdkMethod<Subscription['swapLPTokenTransfer'], SubscriptionswapLPTokenTransferArgs, MeshContext>,
+  swapLPTokenTransferEvent: InContextSdkMethod<Subscription['swapLPTokenTransferEvent'], SubscriptionswapLPTokenTransferEventArgs, MeshContext>,
   /** null **/
-  swapLPTokenTransfers: InContextSdkMethod<Subscription['swapLPTokenTransfers'], SubscriptionswapLPTokenTransfersArgs, MeshContext>,
+  swapLPTokenTransferEvents: InContextSdkMethod<Subscription['swapLPTokenTransferEvents'], SubscriptionswapLPTokenTransferEventsArgs, MeshContext>,
   /** null **/
   user: InContextSdkMethod<Subscription['user'], SubscriptionuserArgs, MeshContext>,
   /** null **/
@@ -2329,12 +2529,20 @@ export type _SubgraphErrorPolicy_ =
   liquidityPosition: InContextSdkMethod<Subscription['liquidityPosition'], SubscriptionliquidityPositionArgs, MeshContext>,
   /** null **/
   liquidityPositions: InContextSdkMethod<Subscription['liquidityPositions'], SubscriptionliquidityPositionsArgs, MeshContext>,
+  /** null **/
+  preLaunchPosition: InContextSdkMethod<Subscription['preLaunchPosition'], SubscriptionpreLaunchPositionArgs, MeshContext>,
+  /** null **/
+  preLaunchPositions: InContextSdkMethod<Subscription['preLaunchPositions'], SubscriptionpreLaunchPositionsArgs, MeshContext>,
+  /** null **/
+  preLaunch: InContextSdkMethod<Subscription['preLaunch'], SubscriptionpreLaunchArgs, MeshContext>,
+  /** null **/
+  preLaunches: InContextSdkMethod<Subscription['preLaunches'], SubscriptionpreLaunchesArgs, MeshContext>,
   /** Access to subgraph metadata **/
   _meta: InContextSdkMethod<Subscription['_meta'], Subscription_metaArgs, MeshContext>
   };
 
   export type Context = {
-      ["Tenderize"]: { Query: QuerySdk, Mutation: MutationSdk, Subscription: SubscriptionSdk },
+      ["lpEth"]: { Query: QuerySdk, Mutation: MutationSdk, Subscription: SubscriptionSdk },
       
     };
 }
