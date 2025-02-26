@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { Address } from '@graphprotocol/graph-ts'
 import {
   DepositETHCall,
   DepositWETHCall,
@@ -6,38 +6,12 @@ import {
   ClaimVeTokensCall,
   ChangeLockupCall,
 } from '../../generated/PreLaunch/PreLaunch'
-import { Deposit, Withdraw, PreLaunchPosition, PreLaunch } from '../../generated/schema'
-import { BI_ZERO, TEN_18 } from './helpers'
-import { log } from '@graphprotocol/graph-ts'
+import { PreLaunchPosition, PreLaunch } from '../../generated/schema'
+import { BI_ZERO } from './helpers'
+import { PreLaunch as PreLaunchContract } from '../../generated/PreLaunch/PreLaunch'
 
 const LPETH_ADDRESS = '0xF3a75E087A92770b4150fFF14c6d36FB07796252'.toLowerCase()
-
-const DEADLINE = 1728746087
-const MIN_LOCKUP = TEN_18
-const MAX_LOCKUP = BigInt.fromI32(52).times(TEN_18)
-const EPOCH_LENGTH = 604800
-const MIN_MULTIPLIER = BigInt.fromString('100000000000000000')
-const MAX_MULTIPLIER = BigInt.fromString('5000000000000000000')
-const SLOPE = BigInt.fromString('2500000000000000000')
-
-// const calculateWeightedDeposit = (amount: BigInt, epochs: BigInt):BigInt => {
-//     if (epochs.lt(MIN_LOCKUP)) {
-//         return BI_ZERO
-//     }
-//     return amount.times(MIN_MULTIPLIER.plus(MAX_MULTIPLIER.minus(MIN_MULTIPLIER)).times(
-//         epochs.minus(MIN_LOCKUP).div(MAX_LOCKUP.minus(MIN_LOCKUP)).pow(SLOPE)
-//     ))
-// }
-
-const calculateWeightedDeposit = (amount: BigInt, epochs: BigInt): BigInt => {
-  let x = parseFloat(amount.toBigDecimal().div(TEN_18.toBigDecimal()).toString())
-  let e = parseInt(epochs.toString(), 10)
-
-  let w = ((x * (1 + (5 - 1)) * (e - 1)) / (52 - 1)) ** 2.5
-  w = Math.floor(w * 10 ** 18)
-
-  return BigInt.fromString(BigDecimal.fromString(w.toString()).toString())
-}
+const PRELAUNCH_ADDRESS = '0xcC73341a078761AB869D90030D6632F9ea139f2b'.toLowerCase()
 
 export function handleDepositETH(call: DepositETHCall): void {
   let amount = call.transaction.value
@@ -66,13 +40,21 @@ export function handleDepositETH(call: DepositETHCall): void {
     preLaunch.weightedAmount = preLaunch.weightedAmount.minus(position.weightedAmount)
   }
 
-  let weighted = calculateWeightedDeposit(position.amount, position.duration)
-  log.debug('Weighted amount: {}', [weighted.toString()])
-  position.weightedAmount = weighted
+  let PreLaunchCaller = PreLaunchContract.bind(Address.fromString(PRELAUNCH_ADDRESS))
+  let called = PreLaunchCaller.try_calculateWeightedDeposit(position.amount, position.duration)
+  if (!called.reverted) {
+    let weighted = BI_ZERO
+    if (called.value.gt(position.amount)) {
+      weighted = called.value
+    } else {
+      weighted = position.amount
+    }
+    position.weightedAmount = weighted
+    preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
+  }
   position.save()
 
   preLaunch.amount = preLaunch.amount.plus(amount)
-  preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
   preLaunch.save()
 }
 
@@ -103,12 +85,21 @@ export function handleDepositWETH(call: DepositWETHCall): void {
     preLaunch.weightedAmount = preLaunch.weightedAmount.minus(position.weightedAmount)
   }
 
-  let weighted = calculateWeightedDeposit(position.amount, position.duration)
-  position.weightedAmount = weighted
+  let PreLaunchCaller = PreLaunchContract.bind(Address.fromString(PRELAUNCH_ADDRESS))
+  let called = PreLaunchCaller.try_calculateWeightedDeposit(position.amount, position.duration)
+  if (!called.reverted) {
+    let weighted = BI_ZERO
+    if (called.value.gt(position.amount)) {
+      weighted = called.value
+    } else {
+      weighted = position.amount
+    }
+    position.weightedAmount = weighted
+    preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
+  }
   position.save()
 
   preLaunch.amount = preLaunch.amount.plus(amount)
-  preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
   preLaunch.save()
 }
 
@@ -124,12 +115,21 @@ export function handleWithdraw(call: WithdrawCall): void {
   if (position != null) {
     position.amount = position.amount.minus(amount)
 
-    let weighted = calculateWeightedDeposit(amount, position.duration)
-    position.weightedAmount = position.weightedAmount.minus(weighted)
+    let PreLaunchCaller = PreLaunchContract.bind(Address.fromString(PRELAUNCH_ADDRESS))
+    let called = PreLaunchCaller.try_calculateWeightedDeposit(amount, position.duration)
+    if (!called.reverted) {
+      let weighted = BI_ZERO
+      if (called.value.gt(position.amount)) {
+        weighted = called.value
+      } else {
+        weighted = amount
+      }
+      position.weightedAmount = position.weightedAmount.minus(weighted)
+      preLaunch.weightedAmount = preLaunch.weightedAmount.minus(weighted)
+    }
     position.save()
 
     preLaunch.amount = preLaunch.amount.minus(amount)
-    preLaunch.weightedAmount = preLaunch.weightedAmount.minus(weighted)
     preLaunch.save()
   }
 }
@@ -154,17 +154,34 @@ export function handleChangeLockup(call: ChangeLockupCall): void {
   }
   let position = PreLaunchPosition.load(call.from.toHexString())
   if (position != null) {
-    let oldWeighted = calculateWeightedDeposit(position.amount, position.duration)
+    let PreLaunchCaller = PreLaunchContract.bind(Address.fromString(PRELAUNCH_ADDRESS))
+    let oldCalled = PreLaunchCaller.try_calculateWeightedDeposit(position.amount, position.duration)
+    if (!oldCalled.reverted) {
+      let weighted = BI_ZERO
+      if (oldCalled.value.gt(position.amount)) {
+        weighted = oldCalled.value
+      } else {
+        weighted = position.amount
+      } 
+      preLaunch.weightedAmount = preLaunch.weightedAmount.minus(weighted)
+
+    }
     // subtract the current weighted amount from the total
     // we will add it back after we calculate the new weighted amount
-    preLaunch.weightedAmount = preLaunch.weightedAmount.minus(oldWeighted)
 
-    let weighted = calculateWeightedDeposit(position.amount, call.inputs.duration)
-    position.weightedAmount = weighted
-    position.duration = call.inputs.duration
-    position.save()
-
-    preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
+    let called = PreLaunchCaller.try_calculateWeightedDeposit(position.amount, call.inputs.duration)
+    if (!called.reverted) {
+      let weighted = BI_ZERO
+      if (called.value.gt(position.amount)) {
+        weighted = called.value
+      } else {
+        weighted = position.amount
+      }
+      preLaunch.weightedAmount = preLaunch.weightedAmount.plus(weighted)
+      position.weightedAmount = weighted
+      position.duration = call.inputs.duration
+    }
+    position.save() 
     preLaunch.save()
   }
 }
